@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Alaska Trip">
+<title>Alaska Trip</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%23101820'/%3E%3Cdefs%3E%3ClinearGradient id='sky' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%230a1628'/%3E%3Cstop offset='100%25' stop-color='%231a3a5c'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='180' height='180' fill='url(%23sky)'/%3E%3Cellipse cx='90' cy='185' rx='110' ry='55' fill='%230d2137'/%3E%3Cpolygon points='20,130 55,60 90,110 110,75 145,130' fill='%23162840'/%3E%3Cpolygon points='55,130 80,70 105,130' fill='%231e3a52'/%3E%3Cpolygon points='95,130 118,78 145,130' fill='%231a3248'/%3E%3Ccircle cx='145' cy='32' r='14' fill='%23f5e070' opacity='0.9'/%3E%3Ccircle cx='145' cy='32' r='18' fill='%23f5e070' opacity='0.12'/%3E%3Ccircle cx='30' cy='25' r='2' fill='white' opacity='0.8'/%3E%3Ccircle cx='60' cy='18' r='1.5' fill='white' opacity='0.7'/%3E%3Ccircle cx='100' cy='22' r='1' fill='white' opacity='0.6'/%3E%3Ccircle cx='75' cy='35' r='1.5' fill='white' opacity='0.5'/%3E%3Ccircle cx='120' cy='15' r='1' fill='white' opacity='0.7'/%3E%3Ccircle cx='50' cy='42' r='1' fill='white' opacity='0.4'/%3E%3Crect x='72' y='108' width='36' height='22' rx='3' fill='%23c8a96e'/%3E%3Crect x='68' y='118' width='44' height='12' rx='2' fill='%23b8955a'/%3E%3Cellipse cx='90' cy='118' rx='22' ry='5' fill='%23d4b87a'/%3E%3Crect x='76' y='100' width='28' height='10' rx='2' fill='%23a07840'/%3E%3Ccircle cx='76' cy='130' r='5' fill='%23222'/%3E%3Ccircle cx='76' cy='130' r='3' fill='%23555'/%3E%3Ccircle cx='104' cy='130' r='5' fill='%23222'/%3E%3Ccircle cx='104' cy='130' r='3' fill='%23555'/%3E%3Ctext x='90' y='165' font-family='system-ui,sans-serif' font-size='11' font-weight='700' fill='%23f5e070' text-anchor='middle' letter-spacing='2'%3EALASKA%3C/text%3E%3C/svg%3E">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0d1117;
+  --bg2:#161b22;
+  --bg3:#21262d;
+  --border:#30363d;
+  --text:#e6edf3;
+  --text2:#8b949e;
+  --text3:#484f58;
+  --accent:#3b7dd8;
+  --accent2:#1f4a8a;
+  --green:#2ea043;
+  --green-bg:#0d3320;
+  --amber:#d29922;
+  --amber-bg:#2d1f00;
+  --red:#f85149;
+  --red-bg:#3d1a1a;
+  --gold:#f5e070;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif;font-size:16px}
+
+/* SPLASH */
+#splash{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);gap:0}
+#splash svg{width:160px;height:160px}
+#splash h1{margin-top:20px;font-size:22px;font-weight:700;color:var(--gold);letter-spacing:3px;text-transform:uppercase}
+#splash p{margin-top:6px;font-size:13px;color:var(--text2);letter-spacing:1px}
+#splash.hidden{display:none}
+
+/* LAYOUT */
+#app{display:flex;flex-direction:column;height:100%;overflow:hidden}
+
+/* HEADER */
+.app-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 16px 10px;flex-shrink:0}
+.app-header h1{font-size:16px;font-weight:600;color:var(--gold);letter-spacing:1px}
+.app-header p{font-size:12px;color:var(--text2);margin-top:1px}
+
+/* TABS */
+.tab-bar{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+.tab-bar::-webkit-scrollbar{display:none}
+.tab-btn{flex:0 0 auto;padding:10px 14px;font-size:12px;font-weight:500;color:var(--text2);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.15s}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* CONTENT */
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 0 80px}
+
+/* PANELS */
+.panel{display:none;padding:12px 16px}
+.panel.active{display:block}
+
+/* PROGRESS */
+.prog-wrap{margin-bottom:14px}
+.prog-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.prog-label{font-size:12px;color:var(--text2)}
+.prog-pct{font-size:12px;font-weight:600;color:var(--green)}
+.prog-bar{height:4px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;background:var(--green);border-radius:4px;transition:width 0.3s}
+.reset-btn{font-size:11px;color:var(--text3);border:1px solid var(--border);background:none;padding:3px 10px;border-radius:20px;cursor:pointer;margin-left:8px}
+
+/* SECTION */
+.section-head{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.08em;margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.section-head:first-child{margin-top:4px}
+
+/* CHECK ITEMS */
+.check-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.check-item:last-child{border-bottom:none}
+.check-item input[type=checkbox]{width:20px;height:20px;flex-shrink:0;margin-top:1px;accent-color:var(--green);cursor:pointer;border-radius:4px}
+.check-item label{font-size:14px;line-height:1.4;color:var(--text);cursor:pointer;flex:1}
+.check-item.done label{color:var(--text3);text-decoration:line-through}
+.check-item .sub{font-size:12px;color:var(--text2);margin-top:2px;display:block}
+
+/* HOTELS */
+.hotel-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px}
+.hotel-card.nrf{border-left:3px solid var(--red)}
+.hotel-card.warn{border-left:3px solid var(--amber)}
+.hotel-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px}
+.hotel-name{font-size:15px;font-weight:600;color:var(--text)}
+.hotel-day-badge{font-size:11px;font-weight:500;color:var(--accent);background:var(--accent2);padding:3px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.conf-row{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.conf-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em}
+.conf-num{font-family:'SF Mono','Fira Code',monospace;font-size:14px;font-weight:600;color:var(--green);letter-spacing:0.5px}
+.hotel-addr{font-size:13px;color:var(--text2);margin-bottom:8px;line-height:1.4}
+.hotel-note{font-size:12px;color:var(--text2);line-height:1.5;padding:8px 10px;background:var(--bg3);border-radius:8px;margin-bottom:10px}
+.hotel-note.red{color:var(--red);background:var(--red-bg)}
+.hotel-note.amber{color:var(--amber);background:var(--amber-bg)}
+.hotel-actions{display:flex;gap:8px;flex-wrap:wrap}
+.h-btn{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:500;padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--text);cursor:pointer;text-decoration:none}
+.h-btn:active{opacity:0.7}
+
+/* ITINERARY */
+.day-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px}
+.day-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.day-num{font-size:12px;font-weight:600;color:var(--gold)}
+.day-date{font-size:12px;color:var(--text2)}
+.day-route{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
+.day-stats{display:flex;gap:12px;font-size:12px;color:var(--text2);margin-bottom:8px}
+.day-stats span{display:flex;align-items:center;gap:3px}
+.day-notes{font-size:12px;color:var(--text2);line-height:1.5}
+.day-notes .alert{color:var(--amber);display:block;margin-top:4px}
+
+/* FUEL */
+.fuel-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px}
+.fuel-stop-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
+.fuel-note{font-size:12px;color:var(--amber);margin-bottom:10px}
+.fuel-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fuel-field label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:4px}
+.fuel-field input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:14px;-webkit-appearance:none}
+.fuel-field input:focus{outline:none;border-color:var(--accent)}
+.fuel-total{margin-top:10px;font-size:13px;color:var(--text2);display:flex;justify-content:space-between}
+.fuel-total span{color:var(--green);font-weight:600}
+.fuel-summary{background:var(--bg3);border-radius:10px;padding:12px;margin-top:16px}
+.fuel-summary h3{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em}
+.fuel-sum-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid var(--border)}
+.fuel-sum-row:last-child{border-bottom:none;font-weight:600;color:var(--gold);padding-top:8px}
+
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+<svg viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0a1628"/>
+      <stop offset="100%" stop-color="#1a3a5c"/>
+    </linearGradient>
+    <linearGradient id="aurora" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00c896" stop-opacity="0"/>
+      <stop offset="40%" stop-color="#00c896" stop-opacity="0.6"/>
+      <stop offset="70%" stop-color="#7b4fff" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#7b4fff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="180" height="180" fill="url(#sky)"/>
+  <!-- aurora -->
+  <path d="M0,55 Q45,40 90,52 Q135,64 180,48" stroke="url(#aurora)" stroke-width="6" fill="none" opacity="0.7"/>
+  <path d="M0,65 Q45,52 90,62 Q135,72 180,58" stroke="url(#aurora)" stroke-width="3" fill="none" opacity="0.4"/>
+  <!-- mountains -->
+  <polygon points="0,140 40,72 80,140" fill="#0f2336"/>
+  <polygon points="30,140 70,58 110,140" fill="#162d44"/>
+  <polygon points="75,140 110,80 145,140" fill="#1a3350"/>
+  <polygon points="110,140 145,75 180,140" fill="#112030"/>
+  <polygon points="140,140 165,95 180,140" fill="#0d1c2e"/>
+  <!-- snow caps -->
+  <polygon points="70,58 78,75 62,75" fill="white" opacity="0.7"/>
+  <polygon points="110,80 117,94 103,94" fill="white" opacity="0.6"/>
+  <polygon points="145,75 151,89 139,89" fill="white" opacity="0.5"/>
+  <!-- moon -->
+  <circle cx="148" cy="30" r="16" fill="#f5e070" opacity="0.85"/>
+  <circle cx="148" cy="30" r="20" fill="#f5e070" opacity="0.1"/>
+  <!-- stars -->
+  <circle cx="20" cy="22" r="1.5" fill="white" opacity="0.9"/>
+  <circle cx="50" cy="15" r="1" fill="white" opacity="0.8"/>
+  <circle cx="95" cy="20" r="1.5" fill="white" opacity="0.7"/>
+  <circle cx="72" cy="32" r="1" fill="white" opacity="0.6"/>
+  <circle cx="115" cy="12" r="1" fill="white" opacity="0.8"/>
+  <circle cx="35" cy="40" r="1" fill="white" opacity="0.5"/>
+  <circle cx="10" cy="48" r="1" fill="white" opacity="0.4"/>
+  <!-- truck -->
+  <rect x="60" y="112" width="60" height="22" rx="4" fill="#c8a96e"/>
+  <rect x="56" y="122" width="68" height="14" rx="3" fill="#b8955a"/>
+  <rect x="64" y="106" width="42" height="12" rx="3" fill="#a07840"/>
+  <!-- windows -->
+  <rect x="67" y="109" width="16" height="7" rx="2" fill="#3a7dbd" opacity="0.8"/>
+  <rect x="86" y="109" width="16" height="7" rx="2" fill="#3a7dbd" opacity="0.8"/>
+  <!-- wheels -->
+  <circle cx="72" cy="136" r="7" fill="#1a1a1a"/>
+  <circle cx="72" cy="136" r="4" fill="#333"/>
+  <circle cx="108" cy="136" r="7" fill="#1a1a1a"/>
+  <circle cx="108" cy="136" r="4" fill="#333"/>
+  <!-- trailer hitch line -->
+  <rect x="120" y="128" width="8" height="3" rx="1" fill="#888"/>
+  <!-- road -->
+  <rect x="0" y="145" width="180" height="35" fill="#0a1520"/>
+  <rect x="82" y="150" width="16" height="4" rx="2" fill="#f5e070" opacity="0.4"/>
+  <!-- text -->
+  <text x="90" y="168" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="#f5e070" text-anchor="middle" letter-spacing="3">ALASKA TRIP</text>
+</svg>
+<h1>Alaska Trip</h1>
+<p>Ventura → Willow · Jun 27 – Jul 9</p>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="app-header">
+    <h1>🗺 Alaska Trip</h1>
+    <p>Ventura → Willow · Jun 27 – Jul 9, 2026</p>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('hotels')">🏨 Hotels</button>
+    <button class="tab-btn" onclick="switchTab('itinerary')">📅 Itinerary</button>
+    <button class="tab-btn" onclick="switchTab('predep')">✅ Pre-departure</button>
+    <button class="tab-btn" onclick="switchTab('michael')">🎒 Michael</button>
+    <button class="tab-btn" onclick="switchTab('hugo')">👦 Hugo</button>
+    <button class="tab-btn" onclick="switchTab('truck')">🚛 Truck</button>
+    <button class="tab-btn" onclick="switchTab('electronics')">📡 Electronics</button>
+    <button class="tab-btn" onclick="switchTab('fuel')">⛽ Fuel log</button>
+  </div>
+  <div class="content">
+
+    <!-- HOTELS -->
+    <div id="panel-hotels" class="panel active">
+      <div id="hotels-container"></div>
+    </div>
+
+    <!-- ITINERARY -->
+    <div id="panel-itinerary" class="panel">
+      <div id="itinerary-container"></div>
+    </div>
+
+    <!-- PRE-DEPARTURE -->
+    <div id="panel-predep" class="panel">
+      <div class="prog-wrap">
+        <div class="prog-meta">
+          <span class="prog-label" id="predep-label">Loading...</span>
+          <button class="reset-btn" onclick="resetList('predep')">Reset</button>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" id="predep-fill"></div></div>
+      </div>
+      <div id="predep-container"></div>
+    </div>
+
+    <!-- MICHAEL -->
+    <div id="panel-michael" class="panel">
+      <div class="prog-wrap">
+        <div class="prog-meta">
+          <span class="prog-label" id="michael-label">Loading...</span>
+          <button class="reset-btn" onclick="resetList('michael')">Reset</button>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" id="michael-fill"></div></div>
+      </div>
+      <div id="michael-container"></div>
+    </div>
+
+    <!-- HUGO -->
+    <div id="panel-hugo" class="panel">
+      <div class="prog-wrap">
+        <div class="prog-meta">
+          <span class="prog-label" id="hugo-label">Loading...</span>
+          <button class="reset-btn" onclick="resetList('hugo')">Reset</button>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" id="hugo-fill"></div></div>
+      </div>
+      <div id="hugo-container"></div>
+    </div>
+
+    <!-- TRUCK -->
+    <div id="panel-truck" class="panel">
+      <div class="prog-wrap">
+        <div class="prog-meta">
+          <span class="prog-label" id="truck-label">Loading...</span>
+          <button class="reset-btn" onclick="resetList('truck')">Reset</button>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" id="truck-fill"></div></div>
+      </div>
+      <div id="truck-container"></div>
+    </div>
+
+    <!-- ELECTRONICS -->
+    <div id="panel-electronics" class="panel">
+      <div class="prog-wrap">
+        <div class="prog-meta">
+          <span class="prog-label" id="electronics-label">Loading...</span>
+          <button class="reset-btn" onclick="resetList('electronics')">Reset</button>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" id="electronics-fill"></div></div>
+      </div>
+      <div id="electronics-container"></div>
+    </div>
+
+    <!-- FUEL LOG -->
+    <div id="panel-fuel" class="panel">
+      <div id="fuel-container"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────────────
+const HOTELS = [
+  {day:"Day 1 · Sat Jun 27",name:"Montego Bay Casino Resort",addr:"100 Wendover Blvd, West Wendover NV",conf:"VPGYT",phone:"800-217-0049",note:"Cancel by Jun 26 or $277.24 penalty. Two kings, outdoor pool for Hugo.",type:"warn",maps:"https://maps.apple.com/?address=100+Wendover+Blvd,West+Wendover,NV"},
+  {day:"Day 4 · Tue Jun 30",name:"Prestige Cranbrook Hotel",addr:"1019 Cranbrook St N, Cranbrook BC",conf:"48326SG000658",phone:"+1 250-417-4002",note:"Cancel 24 hrs prior. AAA/CAA rate applied. Border crossing day.",type:"",maps:"https://maps.apple.com/?address=1019+Cranbrook+St+N,Cranbrook,BC"},
+  {day:"Day 5 · Wed Jul 1",name:"Best Western Plus Prince George",addr:"3387 Massey Dr, Prince George BC",conf:"365166464",phone:"+1 250-964-8833",note:"Large lot confirmed for truck + trailer. Free full breakfast. Canada Day — Uber downtown ~$8-10.",type:"",maps:"https://maps.apple.com/?address=3387+Massey+Dr,Prince+George,BC"},
+  {day:"Day 6 · Thu Jul 2",name:"Best Western Dawson Creek",addr:"12217 4th St, Dawson Creek BC",conf:"694866764",phone:"+1 250-782-7700",note:"Mile 0 of the Alaska Highway. FILL TANK completely on arrival. Free breakfast.",type:"",maps:"https://maps.apple.com/?address=12217+4th+St,Dawson+Creek,BC"},
+  {day:"Day 7 · Fri Jul 3",name:"Woodlands Inn & Suites",addr:"3995 50th Ave S, Fort Nelson BC",conf:"10176729",phone:"+1 250-774-6669",note:"Best reviewed in Fort Nelson (4.5★). Restaurant on-site. Fuel up BEFORE checking in.",type:"",maps:"https://maps.apple.com/?address=Fort+Nelson,BC"},
+  {day:"Day 8 · Sat Jul 4",name:"Northern Rockies Lodge",addr:"Mile 462 Alaska Hwy, Muncho Lake BC",conf:"51897829",phone:"1-800-663-5269",note:"NON-REFUNDABLE — no changes. Jade-green glacial lake, log lodge. Restaurant à la carte. Prime drone spot.",type:"nrf",maps:"https://maps.apple.com/?address=Muncho+Lake,BC"},
+  {day:"Day 9 · Sun Jul 5",name:"Air Force Lodge",addr:"136 Adela Trail, Watson Lake YT",conf:"Phone confirmed",phone:"+1 867-536-6789",note:"Highest rated on entire trip (4.7★). Restored WWII barracks. Shared bathrooms (clean). Small family-run — no email confirmation.",type:"",maps:"https://maps.apple.com/?address=Watson+Lake,YT"},
+  {day:"Day 10 · Mon Jul 6",name:"Best Western Gold Rush Inn",addr:"411 Main St, Whitehorse YT",conf:"844866465",phone:"+1 867-668-4500",note:"Trailer parking confirmed. Last real city before Anchorage — buy groceries, FILL TANK. Walkable to S.S. Klondike.",type:"",maps:"https://maps.apple.com/?address=411+Main+St,Whitehorse,YT"},
+  {day:"Day 11 · Tue Jul 7",name:"Talbot Arm Motel",addr:"Mile 1083 Alaska Hwy, Destruction Bay YT",conf:"H17716098",phone:"+1 867-841-4461",note:"Cancel by 6 PM local Jul 7 or one-night penalty. Mountain view family room. Kluane Lake drone spot.",type:"warn",maps:"https://maps.apple.com/?address=Destruction+Bay,YT"},
+  {day:"Day 12 · Wed Jul 8",name:"Young's Motel",addr:"1313 Alaska Hwy, Tok AK",conf:"7531021853734",phone:"+1 907-883-4411",note:"SLOW DAY — budget 8-9 hrs for 130 miles (frost heaves). Call ahead if running late. US re-entry at Port Alcan.",type:"",maps:"https://maps.apple.com/?address=1313+Alaska+Hwy,Tok,AK"}
+];
+
+const ITINERARY = [
+  {day:"Day 1",date:"Sat Jun 27",route:"Ventura → West Wendover NV",miles:730,drive:"~13 hrs",solo:true,notes:"Longest solo drive. Depart early — 5 AM if possible. No trailer. Pool waiting at Montego Bay."},
+  {day:"Day 2",date:"Sun Jun 28",route:"West Wendover → Finley Point MT",miles:540,drive:"~10 hrs",solo:true,notes:"Arrive mid-afternoon. Rest before rest day."},
+  {day:"Day 3",date:"Mon Jun 29",route:"REST DAY — Flathead Lake, Polson MT",miles:0,drive:"—",solo:false,notes:"Inspect trailer, set WD hitch tension, test brake controller in parking lot. Back recovery day."},
+  {day:"Day 4",date:"Tue Jun 30",route:"Finley Point → Cranbrook BC",miles:210,drive:"~4.5 hrs",solo:false,notes:"First towing day. Border crossing: Roosville MT/BC. Keep all documents accessible.",alert:"Border crossing — have passports + consent letter ready"},
+  {day:"Day 5",date:"Wed Jul 1",route:"Cranbrook → Prince George BC",miles:370,drive:"~7 hrs",solo:false,notes:"Canada Day. Easy highway drive. Arrive early afternoon. Uber to downtown if Hugo wants to see fireworks."},
+  {day:"Day 6",date:"Thu Jul 2",route:"Prince George → Dawson Creek BC",miles:250,drive:"~5 hrs",solo:false,notes:"Arrive ~1:30 PM. Mile 0 monument photos. FILL TANK COMPLETELY — Alaska Highway starts tomorrow.",alert:"Fill tank completely in Dawson Creek"},
+  {day:"Day 7",date:"Fri Jul 3",route:"Dawson Creek → Fort Nelson BC",miles:300,drive:"~6 hrs",solo:false,notes:"Alaska Highway Day 1. Stone sheep, buffalo possible. Fuel in Toad River (~Mile 392) if below 3/4 tank.",alert:"Top off at Toad River Lodge if below ¾ tank"},
+  {day:"Day 8",date:"Sat Jul 4",route:"Fort Nelson → Muncho Lake BC",miles:160,drive:"~3.5 hrs",solo:false,notes:"Short day — arrive by noon. Full afternoon at jade-green lake. Prime drone flying. Northern Rockies Lodge restaurant for dinner.",alert:"NON-REFUNDABLE night — must arrive"},
+  {day:"Day 9",date:"Sun Jul 5",route:"Muncho Lake → (Liard Hot Springs) → Watson Lake YT",miles:310,drive:"~6.5 hrs",solo:false,notes:"Morning soak at Liard Hot Springs (~1 hr) before crowds. Sign Post Forest in Watson Lake — bring Ventura sign, hammer, nails.",alert:"Bring sign + hammer for Sign Post Forest"},
+  {day:"Day 10",date:"Mon Jul 6",route:"Watson Lake → Whitehorse YT",miles:275,drive:"~5.5 hrs",solo:false,notes:"DC-3 weathervane photo stop on Alaska Hwy. Last real city. Buy groceries. FILL TANK COMPLETELY.",alert:"Fill tank completely + buy groceries in Whitehorse"},
+  {day:"Day 11",date:"Tue Jul 7",route:"Whitehorse → Destruction Bay YT",miles:165,drive:"~3.5 hrs",solo:false,notes:"Short scenic day along Kluane Lake. Haines Junction — top off fuel. Afternoon drone flying at lake.",alert:"Top off fuel at Haines Junction"},
+  {day:"Day 12",date:"Wed Jul 8",route:"Destruction Bay → Tok AK",miles:130,drive:"8–9 hrs",solo:false,notes:"SLOW ROAD. Frost heaves — avg 15-20 mph through worst sections. Budget full day for 130 miles. US re-entry at Port Alcan. Check 511.yukon.ca at breakfast.",alert:"Check 511.yukon.ca before departing. US border re-entry today."},
+  {day:"Day 13",date:"Thu Jul 9",route:"Tok → Glennallen → Palmer → Anchorage → Willow AK",miles:440,drive:"~8.5 hrs",solo:false,notes:"Fuel in Glennallen. Lunch in Palmer. Arrive Willow ~3:30-4 PM. Delivery to 22119 Bren Bear Ct."}
+];
+
+const LISTS = {
+  predep:{
+    "Vehicle & towing":[
+      {t:"Tundra oil level checked"},
+      {t:"Tundra coolant level checked"},
+      {t:"All tires inflated (truck + spare) — towing PSI spec"},
+      {t:"Brake lights, turn signals, hazards working"},
+      {t:"Tekonsha Prodigy P2 installed and calibrated"},
+      {t:"Longview CTM4000 clip-on mirrors installed and adjusted"},
+      {t:"Weight-distributing hitch inspected — WD bars seated"},
+      {t:"Trailer wiring 7-pin connector tested (lights + brakes)"},
+      {t:"Brake controller tested in parking lot with loaded trailer"},
+      {t:"Trailer lug nuts torqued"},
+      {t:"Trailer tires inflated to spec"},
+      {t:"Trailer cargo secured — nothing will shift"}
+    ],
+    "Documents":[
+      {t:"Passports located and in glove box (NOT packed in luggage)"},
+      {t:"Notarized consent letter — glove box"},
+      {t:"Vehicle registration — glove box"},
+      {t:"Insurance card — glove box"},
+      {t:"Trailer registration / bill of lading — glove box"},
+      {t:"Hotel confirmations saved offline (PDF or screenshots)"},
+      {t:"Emergency contacts list printed"},
+      {t:"Trip briefing document downloaded / printed"}
+    ],
+    "Logistics":[
+      {t:"RVLife Pro route loaded with all 13 waypoints"},
+      {t:"Offline maps downloaded (NV, ID, MT, BC, YT, AK)"},
+      {t:"511.yukon.ca bookmarked"},
+      {t:"511.alaska.gov bookmarked"},
+      {t:"Credit card confirmed for Canada purchases"},
+      {t:"Bank notified of Canada travel"},
+      {t:"Montego Bay cancel deadline passed (cancel by Jun 26 if needed)",s:"$277.24 penalty if not cancelled in time"},
+      {t:"Call Air Force Lodge Watson Lake to reconfirm Jul 5",s:"+1 867-536-6789"},
+      {t:"Young's Motel Tok number saved — call if running late Day 12",s:"+1 907-883-4411"}
+    ],
+    "Day before (Jun 26)":[
+      {t:"Truck fully fueled in Ventura"},
+      {t:"Cooler packed with drinks and snacks for Day 1"},
+      {t:"All bags loaded in truck"},
+      {t:"Phones charged to 100%"},
+      {t:"Chargers and cables in cab (not in trailer)"},
+      {t:"Hugo briefed on border crossing"},
+      {t:"Early bedtime — 5 AM wake-up target"}
+    ]
+  },
+  michael:{
+    "Clothing":[
+      {t:"7× t-shirts / casual shirts"},
+      {t:"2× jeans or durable pants"},
+      {t:"1× fleece or mid-layer jacket"},
+      {t:"1× waterproof rain jacket / shell"},
+      {t:"7× underwear"},{t:"7× socks"},
+      {t:"1× pajamas / sleep shorts"},
+      {t:"1× swimsuit (Montego Bay pool + Liard Hot Springs)"},
+      {t:"1× comfortable driving shoes"},
+      {t:"1× hiking boots or trail shoes"},
+      {t:"1× sandals or flip-flops"},
+      {t:"1× baseball cap or sun hat"},
+      {t:"1× warm beanie (Yukon/Alaska nights)"},
+      {t:"1× pair lightweight gloves"}
+    ],
+    "Toiletries & health":[
+      {t:"Prescription medications — full 14-day supply + extra"},
+      {t:"Back support / lumbar pillow for driving"},
+      {t:"Pain relief (ibuprofen + acetaminophen)"},
+      {t:"First aid kit"},
+      {t:"Sunscreen SPF 50+"},
+      {t:"Insect repellent — DEET (Yukon mosquitoes are serious)"},
+      {t:"Toothbrush, toothpaste, floss"},
+      {t:"Shampoo, conditioner, body wash"},
+      {t:"Deodorant"},{t:"Razor / grooming kit"},
+      {t:"Hand sanitizer"},{t:"Lip balm with SPF"},
+      {t:"Eye drops"},{t:"Any supplements or vitamins"}
+    ],
+    "Documents & wallet":[
+      {t:"US passport (valid well past Jan 2027)"},
+      {t:"Driver's license"},{t:"AAA membership card"},
+      {t:"Credit cards (primary + backup)"},
+      {t:"USD cash ($300+ recommended)"},
+      {t:"CAD cash ($200+ recommended)"}
+    ]
+  },
+  hugo:{
+    "Clothing":[
+      {t:"7× t-shirts"},{t:"2× shorts"},
+      {t:"2× jeans or durable pants"},
+      {t:"1× fleece jacket"},{t:"1× rain jacket / windbreaker"},
+      {t:"7× underwear"},{t:"7× socks"},
+      {t:"1× pajamas"},
+      {t:"1× swimsuit (Montego Bay pool + Liard Hot Springs)"},
+      {t:"1× comfortable sneakers"},
+      {t:"1× hiking boots or trail shoes"},
+      {t:"1× sandals"},
+      {t:"1× baseball cap"},{t:"1× warm beanie"}
+    ],
+    "Entertainment":[
+      {t:"Nintendo Switch + charger + case"},
+      {t:"Nintendo Switch games (pre-downloaded for offline)"},
+      {t:"Wired headphones (for car — no Bluetooth dropout)"},
+      {t:"Drawing / sketchbook + colored pencils"},
+      {t:"2–3 books or graphic novels"},
+      {t:"Small backpack (personal carry bag for car)"},
+      {t:"Card game or travel game (Uno, etc.)"},
+      {t:"Comfort item"}
+    ],
+    "Toiletries":[
+      {t:"Toothbrush + toothpaste"},
+      {t:"Shampoo + body wash"},
+      {t:"Deodorant"},{t:"Sunscreen SPF 50+"},
+      {t:"Insect repellent"},{t:"Lip balm"},
+      {t:"Hair brush / comb"},
+      {t:"Any prescription medications"}
+    ],
+    "Documents":[
+      {t:"Hugo's US passport (valid through at least Jan 2027)"},
+      {t:"Copy of notarized child travel consent letter — Hugo's bag"},
+      {t:"Health insurance card"}
+    ]
+  },
+  truck:{
+    "Cab — driver & passenger":[
+      {t:"Lumbar support pillow (Michael's back)"},
+      {t:"Neck pillow / travel pillow (Hugo)"},
+      {t:"Sunglasses (both)"},
+      {t:"Snack bag — easily reachable from cab"},
+      {t:"Reusable water bottles (both, pre-filled)"},
+      {t:"Small cooler with drinks"},
+      {t:"Paper towels / napkins"},
+      {t:"Hand sanitizer in cup holder"},
+      {t:"Trash bag clipped to seat"},
+      {t:"Phone chargers + multi-port USB car adapter"},
+      {t:"Phone dash mount"},
+      {t:"Hugo's entertainment bag (Switch, headphones, books)"}
+    ],
+    "Glove box & console":[
+      {t:"Vehicle registration"},
+      {t:"Insurance card"},
+      {t:"Notarized consent letter (accessible — not buried)"},
+      {t:"Trailer documentation"},
+      {t:"AAA card"},
+      {t:"Hotel confirmations printout"},
+      {t:"Emergency contacts list"},
+      {t:"Pen and small notepad"}
+    ],
+    "Behind seat / under rear seat":[
+      {t:"First aid kit"},
+      {t:"Jump starter pack or jumper cables"},
+      {t:"Tow strap / recovery strap"},
+      {t:"Basic tool kit (screwdrivers, pliers, wrench, ratchet set)"},
+      {t:"Trailer tool bag (allen wrenches, spare hardware, WD tools)"},
+      {t:"Duct tape"},
+      {t:"Bungee cords + ratchet straps (2–4)"},
+      {t:"Flashlight + extra batteries"},
+      {t:"Work gloves"},
+      {t:"Reflective safety triangles or road flares"},
+      {t:"Rain ponchos (Michael + Hugo)"}
+    ],
+    "Truck bed / storage":[
+      {t:"Main luggage (Michael + Hugo bags)"},
+      {t:"Extra clothing layers — accessible without digging"},
+      {t:"Non-perishable snack / food supply"},
+      {t:"Groceries (bought in Whitehorse Day 10)"},
+      {t:"Drone case — secured so it won't slide"},
+      {t:"Electronics case / bag"},
+      {t:"Spare trailer brake controller fuses / wire"},
+      {t:"Spare bulbs for trailer lights"},
+      {t:"Tire pressure gauge"},
+      {t:"WD-40 / lubricant spray"},
+      {t:"Spare 7-pin wiring connector"}
+    ]
+  },
+  electronics:{
+    "Navigation & communication":[
+      {t:"iPhone (Michael) — fully charged"},
+      {t:"iPhone / iPad (Hugo) — fully charged"},
+      {t:"RVLife Pro app — route loaded, offline maps downloaded"},
+      {t:"Multi-port USB-C car charger (GaN recommended)"},
+      {t:"Lightning + USB-C cables (2 of each minimum)"},
+      {t:"MagSafe or suction dash phone mount"},
+      {t:"Satellite communicator (Garmin inReach or SPOT)",s:"Strongly recommended for remote Yukon stretch"}
+    ],
+    "Drone":[
+      {t:"Drone body"},
+      {t:"Remote controller + charged"},
+      {t:"Flight batteries (minimum 3 — fully charged)"},
+      {t:"Battery charging hub"},
+      {t:"ND filter set"},
+      {t:"Spare propellers"},
+      {t:"Micro-SD cards (2+, formatted)"},
+      {t:"USB-C charging cable for drone"},
+      {t:"Compact landing pad"},
+      {t:"DJI Fly app — latest version, airspace maps cached"},
+      {t:"Canada drone registration docs",s:"Required for flying in Canada"},
+      {t:"US drone registration docs"}
+    ],
+    "Camera":[
+      {t:"Camera body (if bringing dedicated camera)"},
+      {t:"Lenses + lens cloths"},
+      {t:"Extra batteries + charger"},
+      {t:"SD cards (multiple, formatted)"},
+      {t:"Compact tripod or gorilla pod"}
+    ],
+    "Power & cables":[
+      {t:"Power bank — 20,000 mAh minimum"},
+      {t:"Multi-port wall charger (for motel rooms)"},
+      {t:"Power strip with surge protection"},
+      {t:"Watch charger"},
+      {t:"Nintendo Switch charger"},
+      {t:"Laptop + charger (if bringing)"},
+      {t:"Aux cable 3.5mm (backup for truck stereo)"}
+    ],
+    "Audio":[
+      {t:"Hugo's wired headphones"},
+      {t:"Michael's earbuds or headphones"},
+      {t:"Portable Bluetooth speaker (campfire / motel)"}
+    ]
+  }
+};
+
+const FUEL_STOPS = [
+  {name:"Ventura, CA",note:"Top off before departure",key:"ventura"},
+  {name:"West Wendover, NV",note:"Fill before continuing Day 2",key:"wendover"},
+  {name:"Dawson Creek, BC",note:"⚠️ FILL COMPLETELY — Mile 0, Alaska Highway starts",key:"dawson"},
+  {name:"Toad River Lodge (~Mile 392)",note:"Top off if below ¾ tank",key:"toad"},
+  {name:"Fort Nelson, BC",note:"⚠️ Fill before departing — last major fuel before remote stretch",key:"fortnelson"},
+  {name:"Watson Lake, YT",note:"Fill after Liard Hot Springs stop",key:"watson"},
+  {name:"Whitehorse, YT",note:"⚠️ FILL COMPLETELY — last real city",key:"whitehorse"},
+  {name:"Haines Junction, YT",note:"Top off before Destruction Bay",key:"haines"},
+  {name:"Tok, AK",note:"Fill for final push Day 13",key:"tok"},
+  {name:"Glennallen, AK",note:"Fill for final run to Willow",key:"glennallen"}
+];
+
+// ─── RENDER HOTELS ────────────────────────────────────────────────────────
+function renderHotels(){
+  const el = document.getElementById('hotels-container');
+  el.innerHTML = HOTELS.map(h=>`
+    <div class="hotel-card ${h.type}">
+      <div class="hotel-top">
+        <span class="hotel-name">${h.name}</span>
+        <span class="hotel-day-badge">${h.day}</span>
+      </div>
+      <div class="conf-row">
+        <span class="conf-label">Conf #</span>
+        <span class="conf-num">${h.conf}</span>
+      </div>
+      <div class="hotel-addr">${h.addr}</div>
+      <div class="hotel-note ${h.type==='nrf'?'red':h.type==='warn'?'amber':''}">${h.note}</div>
+      <div class="hotel-actions">
+        <a class="h-btn" href="${h.maps}">📍 Directions</a>
+        <a class="h-btn" href="tel:${h.phone}">📞 ${h.phone}</a>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── RENDER ITINERARY ─────────────────────────────────────────────────────
+function renderItinerary(){
+  const el = document.getElementById('itinerary-container');
+  el.innerHTML = ITINERARY.map(d=>`
+    <div class="day-card">
+      <div class="day-header">
+        <span class="day-num">${d.day}</span>
+        <span class="day-date">${d.date}</span>
+      </div>
+      <div class="day-route">${d.route}</div>
+      <div class="day-stats">
+        ${d.miles?`<span>📍 ${d.miles} mi</span>`:''}
+        <span>⏱ ${d.drive}</span>
+        ${d.solo?'<span>🚗 Solo (no trailer)</span>':''}
+      </div>
+      <div class="day-notes">${d.notes}${d.alert?`<span class="alert">⚠️ ${d.alert}</span>`:''}</div>
+    </div>
+  `).join('');
+}
+
+// ─── RENDER CHECKLISTS ────────────────────────────────────────────────────
+function renderList(name){
+  const data = LISTS[name];
+  const saved = JSON.parse(localStorage.getItem('ak_'+name)||'{}');
+  const el = document.getElementById(name+'-container');
+  let html='', total=0, checked=0;
+  for(const [sec,items] of Object.entries(data)){
+    html+=`<div class="section-head">${sec}</div>`;
+    items.forEach((item,i)=>{
+      const key=sec+'|'+i;
+      const done=saved[key]||false;
+      if(done)checked++; total++;
+      html+=`<div class="check-item${done?' done':''}" id="${name}_${key.replace(/[^a-z0-9]/gi,'_')}">
+        <input type="checkbox" id="cb_${name}_${i}_${sec.replace(/\W/g,'')}" ${done?'checked':''} onchange="toggle('${name}','${key}',this)">
+        <label for="cb_${name}_${i}_${sec.replace(/\W/g,'')}">
+          ${item.t}
+          ${item.s?`<span class="sub">${item.s}</span>`:''}
+        </label>
+      </div>`;
+    });
+  }
+  el.innerHTML=html;
+  updateProg(name,checked,total);
+}
+
+function updateProg(name,checked,total){
+  const pct=total?Math.round(checked/total*100):0;
+  document.getElementById(name+'-fill').style.width=pct+'%';
+  document.getElementById(name+'-label').textContent=`${checked} of ${total} · ${pct}%`;
+}
+
+function toggle(name,key,cb){
+  const saved=JSON.parse(localStorage.getItem('ak_'+name)||'{}');
+  saved[key]=cb.checked;
+  localStorage.setItem('ak_'+name,JSON.stringify(saved));
+  const row=cb.closest('.check-item');
+  cb.checked?row.classList.add('done'):row.classList.remove('done');
+  const panel=document.getElementById('panel-'+name);
+  const allCbs=panel.querySelectorAll('input[type=checkbox]');
+  const checkedCount=[...allCbs].filter(c=>c.checked).length;
+  updateProg(name,checkedCount,allCbs.length);
+}
+
+function resetList(name){
+  if(!confirm('Reset all checkboxes for this list?'))return;
+  localStorage.removeItem('ak_'+name);
+  renderList(name);
+}
+
+// ─── RENDER FUEL LOG ──────────────────────────────────────────────────────
+function renderFuel(){
+  const saved=JSON.parse(localStorage.getItem('ak_fuel')||'{}');
+  const el=document.getElementById('fuel-container');
+  let html='';
+  FUEL_STOPS.forEach(stop=>{
+    const d=saved[stop.key]||{};
+    html+=`<div class="fuel-card">
+      <div class="fuel-stop-name">${stop.name}</div>
+      <div class="fuel-note">${stop.note}</div>
+      <div class="fuel-inputs">
+        <div class="fuel-field">
+          <label>Gallons / Litres</label>
+          <input type="number" step="0.01" placeholder="e.g. 18.4" value="${d.gal||''}" onchange="saveFuel('${stop.key}','gal',this.value)">
+        </div>
+        <div class="fuel-field">
+          <label>Price per unit</label>
+          <input type="number" step="0.001" placeholder="e.g. 4.25" value="${d.price||''}" onchange="saveFuel('${stop.key}','price',this.value)">
+        </div>
+        <div class="fuel-field">
+          <label>Odometer</label>
+          <input type="number" placeholder="e.g. 48220" value="${d.odo||''}" onchange="saveFuel('${stop.key}','odo',this.value)">
+        </div>
+        <div class="fuel-field">
+          <label>Currency</label>
+          <input type="text" placeholder="USD or CAD" value="${d.cur||''}" onchange="saveFuel('${stop.key}','cur',this.value)">
+        </div>
+      </div>
+      ${(d.gal&&d.price)?`<div class="fuel-total">Stop total: <span>$${(parseFloat(d.gal)*parseFloat(d.price)).toFixed(2)} ${d.cur||''}</span></div>`:''}
+    </div>`;
+  });
+  // summary
+  let totalUSD=0, totalCAD=0;
+  FUEL_STOPS.forEach(stop=>{
+    const d=saved[stop.key]||{};
+    if(d.gal&&d.price){
+      const amt=parseFloat(d.gal)*parseFloat(d.price);
+      if((d.cur||'USD').toUpperCase()==='CAD') totalCAD+=amt;
+      else totalUSD+=amt;
+    }
+  });
+  html+=`<div class="fuel-summary">
+    <h3>Running totals</h3>
+    <div class="fuel-sum-row"><span>USD fuel spend</span><span>$${totalUSD.toFixed(2)}</span></div>
+    <div class="fuel-sum-row"><span>CAD fuel spend</span><span>$${totalCAD.toFixed(2)} CAD</span></div>
+    <div class="fuel-sum-row"><span>Budget</span><span>$2,000 USD</span></div>
+  </div>`;
+  el.innerHTML=html;
+}
+
+function saveFuel(key,field,val){
+  const saved=JSON.parse(localStorage.getItem('ak_fuel')||'{}');
+  if(!saved[key])saved[key]={};
+  saved[key][field]=val;
+  localStorage.setItem('ak_fuel',JSON.stringify(saved));
+  renderFuel();
+}
+
+// ─── TAB SWITCHING ────────────────────────────────────────────────────────
+function switchTab(name){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────
+renderHotels();
+renderItinerary();
+['predep','michael','hugo','truck','electronics'].forEach(renderList);
+renderFuel();
+
+// Hide splash after 2.2s
+setTimeout(()=>document.getElementById('splash').classList.add('hidden'),2200);
+</script>
+</body>
+</html>

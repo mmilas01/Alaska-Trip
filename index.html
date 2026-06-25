@@ -208,6 +208,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
     <button class="tab-btn" onclick="switchTab('fuel')">⛽ Fuel log</button>
     <button class="tab-btn" onclick="switchTab('enroute')">📋 En route</button>
     <button class="tab-btn" onclick="switchTab('flight')">✈️ Return flight</button>
+    <button class="tab-btn" onclick="switchTab('trailer')">🚚 Trailer pickup</button>
   </div>
   <div class="content">
 
@@ -301,6 +302,18 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
     <!-- RETURN FLIGHT -->
     <div id="panel-flight" class="panel">
       <div id="flight-container"></div>
+    </div>
+
+    <!-- TRAILER PICKUP -->
+    <div id="panel-trailer" class="panel">
+      <div class="prog-wrap">
+        <div class="prog-meta">
+          <span class="prog-label" id="trailer-label">Loading...</span>
+          <button class="reset-btn" onclick="resetList('trailer')">Reset</button>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" id="trailer-fill"></div></div>
+      </div>
+      <div id="trailer-container"></div>
     </div>
 
   </div>
@@ -460,6 +473,8 @@ const LISTS = {
   },
   truck:{
     "Cab — driver & passenger":[
+      {t:"Steam clean interior — empty all contents first",s:"Do before loading any trip gear"},
+      {t:"Wash grime off hood with abrasive soap"},
       {t:"Lumbar support pillow (Michael's back)"},
       {t:"Neck pillow / travel pillow (Hugo)"},
       {t:"Sunglasses (both)"},
@@ -481,7 +496,8 @@ const LISTS = {
       {t:"AAA card"},
       {t:"Hotel confirmations printout"},
       {t:"Emergency contacts list"},
-      {t:"Pen and small notepad"}
+      {t:"Pen and small notepad"},
+      {t:"All keys — truck spare, trailer, house, any others",s:"Double-check before leaving driveway"}
     ],
     "Behind seat / under rear seat":[
       {t:"First aid kit"},
@@ -522,23 +538,34 @@ const LISTS = {
       {t:"Satellite communicator (Garmin inReach or SPOT)",s:"Strongly recommended for remote Yukon stretch"}
     ],
     "Drone":[
-      {t:"Drone body"},
-      {t:"Remote controller + charged"},
-      {t:"Flight batteries (minimum 3 — fully charged)"},
-      {t:"Battery charging hub"},
+      {t:"DJI Neo 2"},
+      {t:"DJI FPV (with FPV Remote Controller 3)"},
+      {t:"Avata 360 drone (with RC2 controller)"},
+      {t:"DJI Goggles 3"},
+      {t:"All remote controllers — fully charged"},
+      {t:"Flight batteries (minimum 3 per drone — fully charged)"},
+      {t:"Battery charging hub(s)"},
       {t:"ND filter set"},
-      {t:"Spare propellers"},
-      {t:"Micro-SD cards (2+, formatted)"},
-      {t:"USB-C charging cable for drone"},
+      {t:"Spare propellers (all models)"},
+      {t:"Micro-SD cards (2+ per drone, formatted)"},
+      {t:"USB-C charging cables for all drones"},
       {t:"Compact landing pad"},
       {t:"DJI Fly app — latest version, airspace maps cached"},
       {t:"Canada drone registration docs",s:"Required for flying in Canada"},
       {t:"US drone registration docs"}
     ],
+    "DJI Neo 2 — pre-flight settings":[
+      {t:"Change aspect ratio from wide to 4:3",s:"Required for Gyroflow — prevents cropping during stabilization"},
+      {t:"Turn OFF image stabilization (EIS/RockSteady)",s:"Gyroflow handles stabilization in post — don't double-process"},
+      {t:"Confirm Gyroflow metadata recording is enabled"},
+      {t:"Format Neo 2 SD card (in drone)"},
+      {t:"Test record a short clip and verify 4:3 + no EIS in footage"}
+    ],
     "Camera":[
-      {t:"Camera body (if bringing dedicated camera)"},
-      {t:"Lenses + lens cloths"},
-      {t:"Extra batteries + charger"},
+      {t:"Fuji X-T2 camera body"},
+      {t:"Wide-angle zoom lens"},
+      {t:"Prime lens"},
+      {t:"Extra Fuji NP-W126S batteries + charger"},
       {t:"SD cards (multiple, formatted)"},
       {t:"Compact tripod or gorilla pod"},
       {t:"Lens cleaning kit",s:"Microfiber cloths, lens pen, air blower, cleaning solution"}
@@ -556,6 +583,26 @@ const LISTS = {
       {t:"Hugo's wired headphones"},
       {t:"Michael's earbuds or headphones"},
       {t:"Portable Bluetooth speaker (campfire / motel)"}
+    ],
+    "Pre-departure firmware & prep":[
+      {t:"✅ Fuji X-T2 firmware updated",s:"Done"},
+      {t:"✅ Wide-angle zoom lens firmware updated",s:"Done"},
+      {t:"✅ Prime lens firmware updated",s:"Done"},
+      {t:"✅ DJI FPV Remote Controller 3 firmware updated",s:"Done"},
+      {t:"✅ DJI RC2 controller firmware updated",s:"Done"},
+      {t:"✅ DJI Neo 2 firmware updated",s:"Done"},
+      {t:"✅ DJI Goggles 3 firmware updated",s:"Done"},
+      {t:"Avata 360 drone firmware update",s:"To do"},
+      {t:"Update drone firmware (DJI Fly app → firmware check)"},
+      {t:"Update iPhone firmware (Michael)"},
+      {t:"Update iPhone / iPad firmware (Hugo)"},
+      {t:"Update Nintendo Switch system software"},
+      {t:"Update RVLife Pro app to latest version"},
+      {t:"Update DJI Fly app to latest version"},
+      {t:"Format all drone SD cards (in drone, not computer)"},
+      {t:"Format all camera SD cards (in Fuji X-T2)"},
+      {t:"Verify all SD cards readable and empty before packing"},
+      {t:"Back up any existing photos/footage before formatting"}
     ]
   },
   enroute:{
@@ -590,6 +637,62 @@ const LISTS = {
       {t:"Hugo's consent letter accessible"},
       {t:"Carry-on only if possible — avoid checked bag fees"},
       {t:"Download boarding passes to phone before leaving hotel"}
+    ]
+  },
+  trailer:{
+    "Access & security":[
+      {t:"Padlock code: 1533",s:"⚠️ Keep this handy — needed to access trailer at Finley Point"},
+      {t:"Two hitch pin locks on trailer — keys attached to locks",s:"One for truck, one for trailer"},
+      {t:"Locate both hitch pin locks and confirm keys work"},
+      {t:"Confirm Blue Ox stabilizer chain is on 9th chain link",s:"Per Jen's instructions"}
+    ],
+    "Paperwork & documents":[
+      {t:"Locate envelope labeled 'RANDY' inside trailer",s:"Contains insurance copies + letter of permission to transport the Razor"},
+      {t:"Review insurance documents in Randy envelope"},
+      {t:"Review letter of permission to transport property"},
+      {t:"Locate Razor key — in the Razor's glove box"},
+      {t:"Confirm trailer registration is on hand"}
+    ],
+    "Cargo inspection — verify all secure":[
+      {t:"Polaris Razor side-by-side (Randy) — straps tight, no movement"},
+      {t:"Yellow kayak — strapped securely along side wall"},
+      {t:"Two spare trailer tires — stacked and strapped on floor"},
+      {t:"3 extra ratchet straps present (Jen left these)"},
+      {t:"Wood blocks for chocking — present and accessible"},
+      {t:"Jen's wood block under tongue — decide take or leave",s:"It's hers to offer, not storage property"},
+      {t:"Leave the 2 logs at the tires — those belong to the storage place"},
+      {t:"E-track tie down O-ring anchors (DC Cargo 20-pack) — located in front"},
+      {t:"Tire pressure gauge — in front of trailer"},
+      {t:"6 empty gas cans — front of trailer, accessible via front side entrance"},
+      {t:"Fuel transfer pump — in box inside trailer"},
+      {t:"White fuel jugs (2) — accounted for"}
+    ],
+    "Trailer tires & mechanical":[
+      {t:"Spare tire #1 — inside side entrance door, air checked"},
+      {t:"Spare tire #2 — through back ramp, air checked"},
+      {t:"Spare tire #3 — through back ramp, air checked"},
+      {t:"All trailer running tires inflated to spec — Jen confirmed aired up"},
+      {t:"Trailer lights connected and working (7-pin connector)"},
+      {t:"Brake controller reading trailer brakes correctly"},
+      {t:"Coupler latched and locked with hitch pin"},
+      {t:"Safety chains crossed and attached"},
+      {t:"WD hitch bars seated and tensioned — chain on 9th link"}
+    ],
+    "WD hitch setup (Day 3 — rest day)":[
+      {t:"Attach trailer to truck in daylight — no rush"},
+      {t:"Set weight distributing hitch bars"},
+      {t:"Confirm Blue Ox stabilizer chain on 9th link"},
+      {t:"Check truck front end lift — should be minimal with WD bars engaged"},
+      {t:"Test brake controller in parking lot before departing Jun 30"},
+      {t:"Walk around — all lights, all tires, all straps, all locks"}
+    ],
+    "Departure day checklist (Jun 30)":[
+      {t:"Randy envelope + documents in truck cab — accessible"},
+      {t:"Hitch pin locks secured on truck and trailer"},
+      {t:"Towing mirrors adjusted"},
+      {t:"Brake controller active and calibrated"},
+      {t:"Full walkaround before pulling out"},
+      {t:"Tank filled in Polson before heading to border"}
     ]
   }
 };
@@ -816,7 +919,7 @@ function switchTab(name){
 // ─── INIT ─────────────────────────────────────────────────────────────────
 renderHotels();
 renderItinerary();
-['predep','michael','hugo','truck','electronics','enroute'].forEach(renderList);
+['predep','michael','hugo','truck','electronics','enroute','trailer'].forEach(renderList);
 renderFuel();
 renderFlight();
 

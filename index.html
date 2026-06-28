@@ -943,7 +943,7 @@ function renderFuel(){
     if(d.odo&&d.gal&&prevOdo){
       const miles=parseFloat(d.odo)-parseFloat(prevOdo);
       const gals=parseFloat(d.gal);
-      if(miles>0&&gals>0) mpgData.push({key:stop.key,mpg:(miles/gals).toFixed(1),miles:miles.toFixed(0),towing:stop.towing});
+      if(miles>0&&gals>0) mpgData.push({key:stop.key,odo:parseFloat(d.odo),mpg:(miles/gals).toFixed(1),miles:miles.toFixed(0),towing:stop.towing});
     }
     if(d.odo) prevOdo=d.odo;
   });
@@ -998,7 +998,7 @@ function renderFuel(){
     const d=saved[stop.key]||{};
     const locked=d.locked||false;
     const stopTotal=(d.gal&&d.price)?(parseFloat(d.gal)*parseFloat(d.price)).toFixed(2):null;
-    const mpgEntry=mpgData.find(m=>m.key===stop.key);
+    const mpgEntry=mpgData.find(m=>m.key===stop.key)||mpgData.find(m=>d.odo&&m.odo===parseFloat(d.odo));
     const customIdx=customStops.findIndex(s=>s.key===stop.key);
     const borderStyle=locked?'border-left:3px solid var(--green)':(stop.custom?'border-left:3px solid var(--accent)':'');
     html+=`<div class="fuel-card" style="${borderStyle}">

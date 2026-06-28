@@ -997,7 +997,80 @@ function renderFuel(){
     </div>`;
   });
 
+  // Custom stops from localStorage
+  const customStops=JSON.parse(localStorage.getItem('ak_fuel_custom')||'[]');
+  customStops.forEach((stop,i)=>{
+    const d=saved[stop.key]||{};
+    const stopTotal=(d.gal&&d.price)?(parseFloat(d.gal)*parseFloat(d.price)).toFixed(2):null;
+    const mpgEntry=mpgData.find(m=>m.key===stop.key);
+    html+=`<div class="fuel-card" style="border-left:3px solid var(--accent)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+        <div class="fuel-stop-name">${stop.name}</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          ${stop.towing?'<span style="font-size:11px;background:var(--amber-bg);color:var(--amber);padding:2px 8px;border-radius:10px">🚚 Towing</span>':'<span style="font-size:11px;background:var(--green-bg);color:var(--green);padding:2px 8px;border-radius:10px">🚗 Solo</span>'}
+          <button onclick="deleteCustomStop(${i})" style="font-size:11px;padding:2px 8px;border:1px solid var(--border);background:var(--red-bg);color:var(--red);border-radius:10px;cursor:pointer">✕</button>
+        </div>
+      </div>
+      <div class="fuel-note">${stop.note||'Custom stop'}</div>
+      ${d.lat?`<div style="font-size:11px;color:var(--text2);margin-bottom:8px">📍 ${parseFloat(d.lat).toFixed(4)}, ${parseFloat(d.lon).toFixed(4)} · ${d.loctime||''}</div>`:''}
+      <button onclick="captureLocation('${stop.key}')" style="font-size:12px;padding:6px 14px;border:1px solid var(--accent);background:var(--accent2);color:var(--accent);border-radius:20px;cursor:pointer;margin-bottom:10px;width:100%">📍 Capture my location now</button>
+      <div class="fuel-inputs">
+        <div class="fuel-field"><label>Gallons (or litres)</label><input type="number" step="0.01" placeholder="e.g. 18.4" value="${d.gal||''}" onchange="saveFuel('${stop.key}','gal',this.value)"></div>
+        <div class="fuel-field"><label>Price per unit</label><input type="number" step="0.001" placeholder="e.g. 4.25" value="${d.price||''}" onchange="saveFuel('${stop.key}','price',this.value)"></div>
+        <div class="fuel-field"><label>Odometer (miles)</label><input type="number" placeholder="e.g. 48220" value="${d.odo||''}" onchange="saveFuel('${stop.key}','odo',this.value)"></div>
+        <div class="fuel-field"><label>Currency</label><input type="text" placeholder="USD or CAD" value="${d.cur||'USD'}" onchange="saveFuel('${stop.key}','cur',this.value)"></div>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        ${stopTotal?`<div style="font-size:13px;color:var(--text2)">Stop cost: <strong style="color:var(--green)">$${stopTotal} ${d.cur||'USD'}</strong></div>`:''}
+        ${mpgEntry?`<div style="font-size:13px;color:var(--text2)">Leg MPG: <strong style="color:${parseFloat(mpgEntry.mpg)<10?'var(--amber)':'var(--green)'}">${mpgEntry.mpg} mpg</strong> (${mpgEntry.miles} mi)</div>`:''}
+      </div>
+    </div>`;
+  });
+
+  // Add stop button
+  html+=`<div style="margin-top:8px">
+    <button onclick="addCustomStop()" style="width:100%;padding:14px;border:2px dashed var(--accent);background:var(--accent2);color:var(--accent);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:0.5px">
+      + Add Fuel Stop
+    </button>
+  </div>`;
+
   el.innerHTML=html;
+}
+
+function addCustomStop(){
+  const name=prompt('Fuel stop name (e.g. "Elko, NV — Chevron"):');
+  if(!name||!name.trim()) return;
+  const towing=confirm('Are you towing the trailer at this stop?');
+  const key='custom_'+Date.now();
+  const customStops=JSON.parse(localStorage.getItem('ak_fuel_custom')||'[]');
+  customStops.push({name:name.trim(),key,towing,note:'Custom stop added on the road'});
+  localStorage.setItem('ak_fuel_custom',JSON.stringify(customStops));
+  // Auto-capture location
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(
+      pos=>{
+        const saved=JSON.parse(localStorage.getItem('ak_fuel')||'{}');
+        if(!saved[key])saved[key]={};
+        saved[key].lat=pos.coords.latitude.toFixed(6);
+        saved[key].lon=pos.coords.longitude.toFixed(6);
+        saved[key].loctime=new Date().toLocaleString();
+        localStorage.setItem('ak_fuel',JSON.stringify(saved));
+        renderFuel();
+      },
+      ()=>renderFuel(),
+      {enableHighAccuracy:true,timeout:10000}
+    );
+  } else {
+    renderFuel();
+  }
+}
+
+function deleteCustomStop(index){
+  if(!confirm('Remove this custom stop?')) return;
+  const customStops=JSON.parse(localStorage.getItem('ak_fuel_custom')||'[]');
+  customStops.splice(index,1);
+  localStorage.setItem('ak_fuel_custom',JSON.stringify(customStops));
+  renderFuel();
 }
 
 function captureLocation(key){

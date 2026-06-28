@@ -914,11 +914,31 @@ function resetList(name){
 function renderFuel(){
   const saved=JSON.parse(localStorage.getItem('ak_fuel')||'{}');
   const el=document.getElementById('fuel-container');
+  const customStops=JSON.parse(localStorage.getItem('ak_fuel_custom')||'[]');
 
-  // Calculate MPG between consecutive stops that have odometer readings
+  // Build merged sorted stop list first so MPG calc includes custom stops
+  const allStops=[
+    ...FUEL_STOPS.map(s=>({...s,custom:false})),
+    ...customStops.map(s=>({...s,custom:true}))
+  ];
+  allStops.sort((a,b)=>{
+    const odoA=parseFloat((saved[a.key]||{}).odo||0);
+    const odoB=parseFloat((saved[b.key]||{}).odo||0);
+    if(odoA&&odoB) return odoA-odoB;
+    if(odoA&&!odoB) return -1;
+    if(!odoA&&odoB) return 1;
+    const aIdx=FUEL_STOPS.findIndex(s=>s.key===a.key);
+    const bIdx=FUEL_STOPS.findIndex(s=>s.key===b.key);
+    if(aIdx>=0&&bIdx>=0) return aIdx-bIdx;
+    if(aIdx>=0) return -1;
+    if(bIdx>=0) return 1;
+    return a.key.localeCompare(b.key);
+  });
+
+  // Calculate MPG using sorted allStops so custom stops are included
   const mpgData=[];
-  let prevOdo=null, prevKey=null, prevTowing=null;
-  FUEL_STOPS.forEach(stop=>{
+  let prevOdo=null;
+  allStops.forEach(stop=>{
     const d=saved[stop.key]||{};
     if(d.odo&&d.gal&&prevOdo){
       const miles=parseFloat(d.odo)-parseFloat(prevOdo);
@@ -928,11 +948,11 @@ function renderFuel(){
     if(d.odo) prevOdo=d.odo;
   });
 
-  // Summary stats
+  // Summary stats using allStops
   let totalUSD=0,totalCAD=0,totalGalUSD=0,totalGalCAD=0;
   let soloMiles=0,soloGal=0,towingMiles=0,towingGal=0;
   let prevOdo2=null;
-  FUEL_STOPS.forEach(stop=>{
+  allStops.forEach(stop=>{
     const d=saved[stop.key]||{};
     if(d.gal&&d.price){
       const amt=parseFloat(d.gal)*parseFloat(d.price);
@@ -972,27 +992,7 @@ function renderFuel(){
     <div class="fuel-sum-row"><span>Budget</span><span>$2,000 USD</span></div>
   </div>`;
 
-  // Merge planned + custom stops, sort by odometer if available, else by timestamp
-  const customStops=JSON.parse(localStorage.getItem('ak_fuel_custom')||'[]');
-  const allStops=[
-    ...FUEL_STOPS.map(s=>({...s,custom:false})),
-    ...customStops.map(s=>({...s,custom:true}))
-  ];
-  // Sort by odometer reading if present, otherwise keep planned order first, custom by timestamp
-  allStops.sort((a,b)=>{
-    const odoA=parseFloat((saved[a.key]||{}).odo||0);
-    const odoB=parseFloat((saved[b.key]||{}).odo||0);
-    if(odoA&&odoB) return odoA-odoB;
-    if(odoA&&!odoB) return -1;
-    if(!odoA&&odoB) return 1;
-    // Neither has odo — planned stops first in original order, custom by timestamp
-    const aIdx=FUEL_STOPS.findIndex(s=>s.key===a.key);
-    const bIdx=FUEL_STOPS.findIndex(s=>s.key===b.key);
-    if(aIdx>=0&&bIdx>=0) return aIdx-bIdx;
-    if(aIdx>=0) return -1;
-    if(bIdx>=0) return 1;
-    return a.key.localeCompare(b.key);
-  });
+  // Render all stops
 
   allStops.forEach((stop)=>{
     const d=saved[stop.key]||{};

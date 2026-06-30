@@ -1005,7 +1005,10 @@ function renderFuel(){
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
         <div class="fuel-stop-name">${stop.name}</div>
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
-          ${stop.towing?'<span style="font-size:11px;background:var(--amber-bg);color:var(--amber);padding:2px 8px;border-radius:10px">🚚 Towing</span>':'<span style="font-size:11px;background:var(--green-bg);color:var(--green);padding:2px 8px;border-radius:10px">🚗 Solo</span>'}
+          ${stop.towing
+            ?`<span onclick="${stop.custom?`toggleTowing('${stop.key}')`:''}" style="font-size:11px;background:var(--amber-bg);color:var(--amber);padding:2px 8px;border-radius:10px;${stop.custom?'cursor:pointer':''}" title="${stop.custom?'Tap to switch to Solo':''}">🚚 Towing${stop.custom?' ⇄':''}</span>`
+            :`<span onclick="${stop.custom?`toggleTowing('${stop.key}')`:''}" style="font-size:11px;background:var(--green-bg);color:var(--green);padding:2px 8px;border-radius:10px;${stop.custom?'cursor:pointer':''}" title="${stop.custom?'Tap to switch to Towing':''}">🚗 Solo${stop.custom?' ⇄':''}</span>`
+          }
           ${locked
             ?`<span style="font-size:11px;background:var(--green-bg);color:var(--green);padding:2px 8px;border-radius:10px">🔒 Locked</span>
                <button onclick="toggleLock('${stop.key}',false)" style="font-size:11px;padding:2px 8px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);border-radius:10px;cursor:pointer">Unlock</button>`
@@ -1078,6 +1081,16 @@ function addCustomStop(){
   };
   document.getElementById('btn-solo').onclick=()=>finish(false);
   document.getElementById('btn-tow').onclick=()=>finish(true);
+}
+
+function toggleTowing(key){
+  const customStops=JSON.parse(localStorage.getItem('ak_fuel_custom')||'[]');
+  const idx=customStops.findIndex(s=>s.key===key);
+  if(idx>=0){
+    customStops[idx].towing=!customStops[idx].towing;
+    localStorage.setItem('ak_fuel_custom',JSON.stringify(customStops));
+    renderFuel();
+  }
 }
 
 function toggleLock(key,lock){

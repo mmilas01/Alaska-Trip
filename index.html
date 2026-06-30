@@ -1037,9 +1037,70 @@ function renderFuel(){
     <button onclick="addCustomStop()" style="width:100%;padding:14px;border:2px dashed var(--accent);background:var(--accent2);color:var(--accent);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:0.5px">
       + Add Fuel Stop
     </button>
+  </div>
+  <div style="margin-top:10px">
+    <button onclick="exportFuelData()" style="width:100%;padding:14px;border:1px solid var(--border);background:var(--bg3);color:var(--text);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:0.5px">
+      📤 Export fuel data
+    </button>
+  </div>
+  <div id="export-output" style="display:none;margin-top:10px">
+    <textarea id="export-text" readonly style="width:100%;min-height:200px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;font-family:monospace;font-size:11px;color:var(--text)"></textarea>
+    <div style="font-size:12px;color:var(--text2);margin-top:6px;text-align:center">Tap the text above, Select All, Copy — then paste it to Claude on your Mac</div>
   </div>`;
 
   el.innerHTML=html;
+}
+
+function exportFuelData(){
+  const saved=JSON.parse(localStorage.getItem('ak_fuel')||'{}');
+  const customStops=JSON.parse(localStorage.getItem('ak_fuel_custom')||'[]');
+  const allStops=[
+    ...FUEL_STOPS.map(s=>({...s,custom:false})),
+    ...customStops.map(s=>({...s,custom:true}))
+  ];
+  allStops.sort((a,b)=>{
+    const odoA=parseFloat((saved[a.key]||{}).odo||0);
+    const odoB=parseFloat((saved[b.key]||{}).odo||0);
+    if(odoA&&odoB) return odoA-odoB;
+    if(odoA&&!odoB) return -1;
+    if(!odoA&&odoB) return 1;
+    const aIdx=FUEL_STOPS.findIndex(s=>s.key===a.key);
+    const bIdx=FUEL_STOPS.findIndex(s=>s.key===b.key);
+    if(aIdx>=0&&bIdx>=0) return aIdx-bIdx;
+    if(aIdx>=0) return -1;
+    if(bIdx>=0) return 1;
+    return a.key.localeCompare(b.key);
+  });
+
+  let txt='ALASKA TRIP — FUEL LOG EXPORT\n';
+  txt+='Exported: '+new Date().toLocaleString()+'\n';
+  txt+='='.repeat(50)+'\n\n';
+
+  allStops.forEach(stop=>{
+    const d=saved[stop.key]||{};
+    if(!d.gal&&!d.odo&&!d.price) return; // skip empty stops
+    txt+=stop.name+(stop.custom?' (custom stop)':'')+'\n';
+    txt+='  Type: '+(stop.towing?'Towing':'Solo')+'\n';
+    if(d.gal) txt+='  Gallons: '+d.gal+'\n';
+    if(d.price) txt+='  Price/unit: '+d.price+' '+(d.cur||'USD')+'\n';
+    if(d.gal&&d.price) txt+='  Stop cost: $'+(parseFloat(d.gal)*parseFloat(d.price)).toFixed(2)+' '+(d.cur||'USD')+'\n';
+    if(d.odo) txt+='  Odometer: '+d.odo+' mi\n';
+    if(d.lat) txt+='  GPS: '+d.lat+', '+d.lon+' ('+(d.loctime||'')+')\n';
+    if(d.locked) txt+='  [LOCKED]\n';
+    txt+='\n';
+  });
+
+  txt+='='.repeat(50)+'\n';
+  txt+='Raw JSON data (for precise reconstruction):\n\n';
+  txt+='FUEL_DATA='+JSON.stringify(saved)+'\n\n';
+  txt+='CUSTOM_STOPS='+JSON.stringify(customStops)+'\n';
+
+  const outputDiv=document.getElementById('export-output');
+  const textArea=document.getElementById('export-text');
+  textArea.value=txt;
+  outputDiv.style.display='block';
+  textArea.focus();
+  textArea.select();
 }
 
 function addCustomStop(){

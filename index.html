@@ -383,19 +383,19 @@ const HOTELS = [
 ];
 
 const ITINERARY = [
-  {day:"Day 1",date:"Sat Jun 27",route:"Ventura → West Wendover NV",miles:730,drive:"~13 hrs",solo:true,notes:"Longest solo drive. Depart early — 5 AM if possible. No trailer. Pool waiting at Montego Bay."},
-  {day:"Day 2",date:"Sun Jun 28",route:"West Wendover → Finley Point MT",miles:540,drive:"~10 hrs",solo:true,notes:"Arrive mid-afternoon. Rest before rest day."},
-  {day:"Day 3",date:"Mon Jun 29",route:"REST DAY — Flathead Lake, Polson MT",miles:0,drive:"—",solo:false,notes:"Inspect trailer, set WD hitch tension, test brake controller in parking lot. Back recovery day."},
-  {day:"Day 4",date:"Tue Jun 30",route:"Finley Point → Cranbrook BC",miles:210,drive:"~4.5 hrs",solo:false,notes:"First towing day. Border crossing: Roosville MT/BC. Keep all documents accessible.",alert:"Border crossing — have passports + consent letter ready"},
-  {day:"Day 5",date:"Wed Jul 1",route:"Cranbrook → Prince George BC",miles:370,drive:"~7 hrs",solo:false,notes:"Canada Day. Easy highway drive. Arrive early afternoon. Uber to downtown if Hugo wants to see fireworks."},
-  {day:"Day 6",date:"Thu Jul 2",route:"Prince George → Dawson Creek BC",miles:250,drive:"~5 hrs",solo:false,notes:"Arrive ~1:30 PM. Mile 0 monument photos. FILL TANK COMPLETELY — Alaska Highway starts tomorrow.",alert:"Fill tank completely in Dawson Creek"},
-  {day:"Day 7",date:"Fri Jul 3",route:"Dawson Creek → Fort Nelson BC",miles:300,drive:"~6 hrs",solo:false,notes:"Alaska Highway Day 1. Stone sheep, buffalo possible. Fuel in Toad River (~Mile 392) if below 3/4 tank.",alert:"Top off at Toad River Lodge if below ¾ tank"},
-  {day:"Day 8",date:"Sat Jul 4",route:"Fort Nelson → Muncho Lake BC",miles:160,drive:"~3.5 hrs",solo:false,notes:"Short day — arrive by noon. Full afternoon at jade-green lake. Prime drone flying. Northern Rockies Lodge restaurant for dinner.",alert:"NON-REFUNDABLE night — must arrive"},
-  {day:"Day 9",date:"Sun Jul 5",route:"Muncho Lake → (Liard Hot Springs) → Watson Lake YT",miles:310,drive:"~6.5 hrs",solo:false,notes:"Morning soak at Liard Hot Springs (~1 hr) before crowds. Sign Post Forest in Watson Lake — bring Ventura sign, hammer, nails.",alert:"Bring sign + hammer for Sign Post Forest"},
-  {day:"Day 10",date:"Mon Jul 6",route:"Watson Lake → Whitehorse YT",miles:275,drive:"~5.5 hrs",solo:false,notes:"DC-3 weathervane photo stop on Alaska Hwy. Last real city. Buy groceries. FILL TANK COMPLETELY.",alert:"Fill tank completely + buy groceries in Whitehorse"},
-  {day:"Day 11",date:"Tue Jul 7",route:"Whitehorse → Destruction Bay YT",miles:165,drive:"~3.5 hrs",solo:false,notes:"Short scenic day along Kluane Lake. Haines Junction — top off fuel. Afternoon drone flying at lake.",alert:"Top off fuel at Haines Junction"},
-  {day:"Day 12",date:"Wed Jul 8",route:"Destruction Bay → Tok AK",miles:130,drive:"8–9 hrs",solo:false,notes:"SLOW ROAD. Frost heaves — avg 15-20 mph through worst sections. Budget full day for 130 miles. US re-entry at Port Alcan. Check 511.yukon.ca at breakfast.",alert:"Check 511.yukon.ca before departing. US border re-entry today."},
-  {day:"Day 13",date:"Thu Jul 9",route:"Tok → Glennallen → Palmer → Anchorage → Willow AK",miles:440,drive:"~8.5 hrs",solo:false,notes:"Fuel in Glennallen. Lunch in Palmer. Arrive Willow ~3:30-4 PM. Delivery to 22119 Bren Bear Ct."}
+  {day:"Day 1",date:"Sat Jun 27",route:"Ventura → West Wendover NV",miles:730,drive:"~13 hrs",driveHours:13,solo:true,notes:"Longest solo drive. Depart early — 5 AM if possible. No trailer. Pool waiting at Montego Bay."},
+  {day:"Day 2",date:"Sun Jun 28",route:"West Wendover → Finley Point MT",miles:540,drive:"~10 hrs",driveHours:10,solo:true,notes:"Arrive mid-afternoon. Rest before rest day."},
+  {day:"Day 3",date:"Mon Jun 29",route:"REST DAY — Flathead Lake, Polson MT",miles:0,drive:"—",driveHours:0,solo:false,notes:"Inspect trailer, set WD hitch tension, test brake controller in parking lot. Back recovery day."},
+  {day:"Day 4",date:"Tue Jun 30",route:"Finley Point → Cranbrook BC",miles:210,drive:"~4.5 hrs",driveHours:4.5,solo:false,notes:"First towing day. Border crossing: Roosville MT/BC. Keep all documents accessible.",alert:"Border crossing — have passports + consent letter ready"},
+  {day:"Day 5",date:"Wed Jul 1",route:"Cranbrook → Prince George BC",miles:370,drive:"~7 hrs",driveHours:7,solo:false,notes:"Canada Day. Easy highway drive. Arrive early afternoon. Uber to downtown if Hugo wants to see fireworks."},
+  {day:"Day 6",date:"Thu Jul 2",route:"Prince George → Dawson Creek BC",miles:250,drive:"~5 hrs",driveHours:5,solo:false,notes:"Arrive ~1:30 PM. Mile 0 monument photos. FILL TANK COMPLETELY — Alaska Highway starts tomorrow.",alert:"Fill tank completely in Dawson Creek"},
+  {day:"Day 7",date:"Fri Jul 3",route:"Dawson Creek → Fort Nelson BC",miles:300,drive:"~6 hrs",driveHours:6,solo:false,notes:"Alaska Highway Day 1. Stone sheep, buffalo possible. Fuel in Toad River (~Mile 392) if below 3/4 tank.",alert:"Top off at Toad River Lodge if below ¾ tank"},
+  {day:"Day 8",date:"Sat Jul 4",route:"Fort Nelson → Muncho Lake BC",miles:160,drive:"~3.5 hrs",driveHours:3.5,solo:false,notes:"Short day — arrive by noon. Full afternoon at jade-green lake. Prime drone flying. Northern Rockies Lodge restaurant for dinner.",alert:"NON-REFUNDABLE night — must arrive"},
+  {day:"Day 9",date:"Sun Jul 5",route:"Muncho Lake → (Liard Hot Springs) → Watson Lake YT",miles:310,drive:"~6.5 hrs",driveHours:6.5,solo:false,notes:"Morning soak at Liard Hot Springs (~1 hr) before crowds. Sign Post Forest in Watson Lake — bring Ventura sign, hammer, nails.",alert:"Bring sign + hammer for Sign Post Forest"},
+  {day:"Day 10",date:"Mon Jul 6",route:"Watson Lake → Whitehorse YT",miles:275,drive:"~5.5 hrs",driveHours:5.5,solo:false,notes:"DC-3 weathervane photo stop on Alaska Hwy. Last real city. Buy groceries. FILL TANK COMPLETELY.",alert:"Fill tank completely + buy groceries in Whitehorse"},
+  {day:"Day 11",date:"Tue Jul 7",route:"Whitehorse → Destruction Bay YT",miles:165,drive:"~3.5 hrs",driveHours:3.5,solo:false,notes:"Short scenic day along Kluane Lake. Haines Junction — top off fuel. Afternoon drone flying at lake.",alert:"Top off fuel at Haines Junction"},
+  {day:"Day 12",date:"Wed Jul 8",route:"Destruction Bay → Tok AK",miles:130,drive:"8–9 hrs",driveHours:8.5,solo:false,notes:"SLOW ROAD. Frost heaves — avg 15-20 mph through worst sections. Budget full day for 130 miles. US re-entry at Port Alcan. Check 511.yukon.ca at breakfast.",alert:"Check 511.yukon.ca before departing. US border re-entry today."},
+  {day:"Day 13",date:"Thu Jul 9",route:"Tok → Glennallen → Palmer → Anchorage → Willow AK",miles:440,drive:"~8.5 hrs",driveHours:8.5,solo:false,notes:"Fuel in Glennallen. Lunch in Palmer. Arrive Willow ~3:30-4 PM. Delivery to 22119 Bren Bear Ct."}
 ];
 
 const LISTS = {
@@ -844,7 +844,21 @@ function renderHotels(){
 // ─── RENDER ITINERARY ─────────────────────────────────────────────────────
 function renderItinerary(){
   const el = document.getElementById('itinerary-container');
-  el.innerHTML = ITINERARY.map(d=>`
+  const saved = JSON.parse(localStorage.getItem('ak_depart')||'{}');
+  el.innerHTML = ITINERARY.map((d,i)=>{
+    const depTime = saved[i] || '';
+    let eta = '';
+    if(depTime && d.driveHours>0){
+      const [h,m] = depTime.split(':').map(Number);
+      const totalMin = h*60 + m + Math.round(d.driveHours*60);
+      let etaH = Math.floor(totalMin/60)%24;
+      const etaM = totalMin%60;
+      const dayOver = Math.floor(totalMin/60/24);
+      const ampm = etaH>=12?'PM':'AM';
+      let etaH12 = etaH%12; if(etaH12===0) etaH12=12;
+      eta = `${etaH12}:${String(etaM).padStart(2,'0')} ${ampm}${dayOver>0?' (+'+dayOver+'d)':''}`;
+    }
+    return `
     <div class="day-card">
       <div class="day-header">
         <span class="day-num">${d.day}</span>
@@ -856,9 +870,27 @@ function renderItinerary(){
         <span>⏱ ${d.drive}</span>
         ${d.solo?'<span>🚗 Solo (no trailer)</span>':''}
       </div>
+      ${d.driveHours>0?`
+      <div style="display:flex;gap:8px;align-items:center;margin:10px 0;padding:10px;background:var(--bg3);border-radius:8px">
+        <div style="flex:1">
+          <label style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:4px">Departure time</label>
+          <input type="time" value="${depTime}" onchange="saveDepartTime(${i},this.value)" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--text);font-size:14px">
+        </div>
+        ${eta?`<div style="flex:1">
+          <label style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:4px">Est. arrival</label>
+          <div style="font-size:16px;font-weight:600;color:var(--green);padding:6px 0">${eta}</div>
+        </div>`:''}
+      </div>`:''}
       <div class="day-notes">${d.notes}${d.alert?`<span class="alert">⚠️ ${d.alert}</span>`:''}</div>
     </div>
-  `).join('');
+  `}).join('');
+}
+
+function saveDepartTime(idx,val){
+  const saved = JSON.parse(localStorage.getItem('ak_depart')||'{}');
+  saved[idx] = val;
+  localStorage.setItem('ak_depart',JSON.stringify(saved));
+  renderItinerary();
 }
 
 // ─── RENDER CHECKLISTS ────────────────────────────────────────────────────

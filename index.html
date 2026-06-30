@@ -871,10 +871,13 @@ function renderItinerary(){
         ${d.solo?'<span>🚗 Solo (no trailer)</span>':''}
       </div>
       ${d.driveHours>0?`
-      <div style="margin:10px 0;padding:10px;background:var(--bg3);border-radius:8px">
+      <div style="margin:10px 0;padding:10px;background:var(--bg3);border-radius:8px;overflow:hidden">
         <div style="margin-bottom:${eta?'10px':'0'}">
           <label style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:4px">Departure time</label>
-          <input type="time" value="${depTime}" onchange="saveDepartTime(${i},this.value)" style="width:100%;max-width:100%;box-sizing:border-box;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--text);font-size:14px">
+          <div style="display:flex;gap:6px;align-items:center">
+            <input type="time" value="${depTime}" onchange="saveDepartTime(${i},this.value)" style="flex:1;min-width:0;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--text);font-size:14px">
+            ${depTime?`<button onclick="clearDepartTime(${i})" style="flex-shrink:0;font-size:13px;padding:7px 12px;border:1px solid var(--border);background:var(--red-bg);color:var(--red);border-radius:6px;cursor:pointer">✕</button>`:''}
+          </div>
         </div>
         ${eta?`<div>
           <label style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:4px">ETA</label>
@@ -889,6 +892,13 @@ function renderItinerary(){
 function saveDepartTime(idx,val){
   const saved = JSON.parse(localStorage.getItem('ak_depart')||'{}');
   saved[idx] = val;
+  localStorage.setItem('ak_depart',JSON.stringify(saved));
+  renderItinerary();
+}
+
+function clearDepartTime(idx){
+  const saved = JSON.parse(localStorage.getItem('ak_depart')||'{}');
+  delete saved[idx];
   localStorage.setItem('ak_depart',JSON.stringify(saved));
   renderItinerary();
 }

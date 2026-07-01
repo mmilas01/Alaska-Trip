@@ -386,7 +386,7 @@ const ITINERARY = [
   {day:"Day 1",date:"Sat Jun 27",route:"Ventura → West Wendover NV",miles:730,drive:"~13 hrs",driveHours:13,solo:true,notes:"Longest solo drive. Depart early — 5 AM if possible. No trailer. Pool waiting at Montego Bay."},
   {day:"Day 2",date:"Sun Jun 28",route:"West Wendover → Finley Point MT",miles:540,drive:"~10 hrs",driveHours:10,solo:true,notes:"Arrive mid-afternoon. Rest before rest day."},
   {day:"Day 3",date:"Mon Jun 29",route:"REST DAY — Flathead Lake, Polson MT",miles:0,drive:"—",driveHours:0,solo:false,notes:"Inspect trailer, set WD hitch tension, test brake controller in parking lot. Back recovery day."},
-  {day:"Day 4",date:"Tue Jun 30",route:"Finley Point → Cranbrook BC",miles:210,drive:"~4.5 hrs",driveHours:4.5,solo:false,notes:"First towing day. Border crossing: Roosville MT/BC. Keep all documents accessible.",alert:"Border crossing — have passports + consent letter ready"},
+  {day:"Day 4",date:"Tue Jun 30",route:"Finley Point → Cranbrook BC",miles:210,drive:"~4.5 hrs",driveHours:4.5,solo:false,notes:"First towing day. Border crossing: Roosville MT/BC. Keep all documents accessible. Stonehenge Air Museum (Fortine/Eureka, MT) is along this route — appointment only, call 406-882-4714 ahead if interested.",alert:"Border crossing — have passports + consent letter ready"},
   {day:"Day 5",date:"Wed Jul 1",route:"Cranbrook → Prince George BC",miles:370,drive:"~7 hrs",driveHours:7,solo:false,notes:"Canada Day. Easy highway drive. Arrive early afternoon. Uber to downtown if Hugo wants to see fireworks."},
   {day:"Day 6",date:"Thu Jul 2",route:"Prince George → Dawson Creek BC",miles:250,drive:"~5 hrs",driveHours:5,solo:false,notes:"Arrive ~1:30 PM. Mile 0 monument photos. FILL TANK COMPLETELY — Alaska Highway starts tomorrow.",alert:"Fill tank completely in Dawson Creek"},
   {day:"Day 7",date:"Fri Jul 3",route:"Dawson Creek → Fort Nelson BC",miles:300,drive:"~6 hrs",driveHours:6,solo:false,notes:"Alaska Highway Day 1. Stone sheep, buffalo possible. Fuel in Toad River (~Mile 392) if below 3/4 tank.",alert:"Top off at Toad River Lodge if below ¾ tank"},
@@ -955,6 +955,10 @@ function resetList(name){
 // ─── RENDER FUEL LOG ──────────────────────────────────────────────────────
 function renderFuel(){
   const saved=JSON.parse(localStorage.getItem('ak_fuel')||'{}');
+  // Migrate old 'gal' field to 'qty' for existing data
+  let migrated=false;
+  Object.keys(saved).forEach(k=>{if(saved[k].gal&&!saved[k].qty){saved[k].qty=saved[k].gal;delete saved[k].gal;migrated=true;}});
+  if(migrated) localStorage.setItem('ak_fuel',JSON.stringify(saved));
   const el=document.getElementById('fuel-container');
   const customStops=JSON.parse(localStorage.getItem('ak_fuel_custom')||'[]');
 
@@ -977,103 +981,125 @@ function renderFuel(){
     return a.key.localeCompare(b.key);
   });
 
-  // Calculate MPG using sorted allStops so custom stops are included
+  // Calculate MPG using sorted allStops — always convert litres to gallons first
+  const L_PER_GAL=3.78541;
   const mpgData=[];
   let prevOdo=null;
   allStops.forEach(stop=>{
     const d=saved[stop.key]||{};
-    if(d.odo&&d.gal&&prevOdo){
+    if(d.odo&&d.qty&&prevOdo){
       const miles=parseFloat(d.odo)-parseFloat(prevOdo);
-      const gals=parseFloat(d.gal);
+      const isLitres=(d.unit||'gal')==='L';
+      const gals=isLitres?parseFloat(d.qty)/L_PER_GAL:parseFloat(d.qty);
       if(miles>0&&gals>0) mpgData.push({key:stop.key,odo:parseFloat(d.odo),mpg:(miles/gals).toFixed(1),miles:miles.toFixed(0),towing:stop.towing});
     }
     if(d.odo) prevOdo=d.odo;
   });
 
-  // Summary stats using allStops
-  let totalUSD=0,totalCAD=0,totalGalUSD=0,totalGalCAD=0;
-  let soloMiles=0,soloGal=0,towingMiles=0,towingGal=0;
+  // Summary stats — convert everything to USD gallons for totals
+  const cadRate=parseFloat(localStorage.getItem('ak_cad_rate')||'0.73');
+  let totalUSD=0,totalCAD=0;
+  let soloMiles=0,soloGalEq=0,towingMiles=0,towingGalEq=0;
   let prevOdo2=null;
   allStops.forEach(stop=>{
     const d=saved[stop.key]||{};
-    if(d.gal&&d.price){
-      const amt=parseFloat(d.gal)*parseFloat(d.price);
-      const g=parseFloat(d.gal);
-      if((d.cur||'USD').toUpperCase()==='CAD'){totalCAD+=amt;totalGalCAD+=g;}
-      else{totalUSD+=amt;totalGalUSD+=g;}
+    if(d.qty&&d.price){
+      const isLitres=(d.unit||'gal')==='L';
+      const isCad=(d.cur||'USD')==='CAD';
+      const qty=parseFloat(d.qty);
+      const price=parseFloat(d.price);
+      const cost=qty*price;
+      if(isCad) totalCAD+=cost; else totalUSD+=cost;
     }
     if(d.odo&&prevOdo2){
       const miles=parseFloat(d.odo)-parseFloat(prevOdo2);
-      const g=parseFloat(d.gal)||0;
-      if(stop.towing){towingMiles+=miles;towingGal+=g;}
-      else{soloMiles+=miles;soloGal+=g;}
+      const isLitres=(d.unit||'gal')==='L';
+      const gals=d.qty?(isLitres?parseFloat(d.qty)/L_PER_GAL:parseFloat(d.qty)):0;
+      if(stop.towing){towingMiles+=miles;towingGalEq+=gals;}
+      else{soloMiles+=miles;soloGalEq+=gals;}
     }
     if(d.odo) prevOdo2=d.odo;
   });
 
-  const soloMPG=soloGal>0?(soloMiles/soloGal).toFixed(1):'—';
-  const towingMPG=towingGal>0?(towingMiles/towingGal).toFixed(1):'—';
-  const soloMPGNum=soloGal>0?soloMiles/soloGal:16;
-  const towingMPGNum=towingGal>0?towingMiles/towingGal:8;
-  // Reimbursement: extra fuel cost due to towing (miles driven towing at solo MPG vs actual towing MPG)
+  const totalUSDEquiv=totalUSD+(totalCAD*cadRate);
+  const soloMPG=soloGalEq>0?(soloMiles/soloGalEq).toFixed(1):'—';
+  const towingMPG=towingGalEq>0?(towingMiles/towingGalEq).toFixed(1):'—';
+  const soloMPGNum=soloGalEq>0?soloMiles/soloGalEq:16;
   let reimb='—';
-  if(towingMiles>0&&towingGal>0&&soloGal>0){
+  if(towingMiles>0&&towingGalEq>0&&soloGalEq>0){
     const galIfSolo=towingMiles/soloMPGNum;
-    const extraGal=towingGal-galIfSolo;
-    const avgPrice=totalUSD>0?totalUSD/totalGalUSD:4.25;
-    reimb='$'+(extraGal*avgPrice).toFixed(2)+' USD est.';
+    const extraGal=towingGalEq-galIfSolo;
+    const avgPriceUSD=totalUSDEquiv/(soloGalEq+towingGalEq)||4.25;
+    reimb='$'+(extraGal*avgPriceUSD).toFixed(2)+' USD est.';
   }
 
   let html=`<div class="fuel-summary" style="margin-bottom:16px">
     <h3>Trip fuel summary</h3>
     <div class="fuel-sum-row"><span>USD fuel spend</span><span style="color:var(--green)">$${totalUSD.toFixed(2)}</span></div>
-    <div class="fuel-sum-row"><span>CAD fuel spend</span><span style="color:var(--green)">$${totalCAD.toFixed(2)} CAD</span></div>
+    <div class="fuel-sum-row"><span>CAD fuel spend</span><span style="color:var(--green)">$${totalCAD.toFixed(2)} CAD <span style="font-size:11px;color:var(--text2)">(≈$${(totalCAD*cadRate).toFixed(2)} USD)</span></span></div>
+    <div class="fuel-sum-row"><span>Total USD equivalent</span><span style="color:var(--green)">$${totalUSDEquiv.toFixed(2)}</span></div>
     <div class="fuel-sum-row"><span>Solo MPG (no trailer)</span><span>${soloMPG} mpg</span></div>
     <div class="fuel-sum-row"><span>Towing MPG (with trailer)</span><span>${towingMPG} mpg</span></div>
     <div class="fuel-sum-row"><span>Reimbursement estimate</span><span style="color:var(--amber)">${reimb}</span></div>
-    <div class="fuel-sum-row"><span>Budget</span><span>$2,000 USD</span></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
+      <span style="font-size:11px;color:var(--text2)">CAD→USD rate:</span>
+      <input type="number" step="0.001" value="${cadRate}" onchange="localStorage.setItem('ak_cad_rate',this.value);renderFuel()" style="width:70px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:4px 6px;font-size:12px;color:var(--text)">
+      <span style="font-size:11px;color:var(--text2)">(update if needed)</span>
+    </div>
   </div>`;
 
   // Render all stops
-
   allStops.forEach((stop)=>{
     const d=saved[stop.key]||{};
     const locked=d.locked||false;
-    const stopTotal=(d.gal&&d.price)?(parseFloat(d.gal)*parseFloat(d.price)).toFixed(2):null;
+    const unit=d.unit||'gal';
+    const cur=d.cur||'USD';
+    const isLitres=unit==='L';
+    const isCad=cur==='CAD';
+    const qty=parseFloat(d.qty||0);
+    const price=parseFloat(d.price||0);
+    const galsEq=isLitres?qty/L_PER_GAL:qty;
+    const stopCost=(qty&&price)?(qty*price).toFixed(2):null;
+    const stopCostUSD=(qty&&price)?(isCad?(qty*price*cadRate).toFixed(2):(qty*price).toFixed(2)):null;
     const mpgEntry=mpgData.find(m=>m.key===stop.key)||mpgData.find(m=>d.odo&&m.odo===parseFloat(d.odo));
     const customIdx=customStops.findIndex(s=>s.key===stop.key);
     const borderStyle=locked?'border-left:3px solid var(--green)':(stop.custom?'border-left:3px solid var(--accent)':'');
-    html+=`<div class="fuel-card" style="${borderStyle}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
-        <div class="fuel-stop-name">${stop.name}</div>
-        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
-          ${stop.towing
-            ?`<span onclick="${stop.custom?`toggleTowing('${stop.key}')`:''}" style="font-size:11px;background:var(--amber-bg);color:var(--amber);padding:2px 8px;border-radius:10px;${stop.custom?'cursor:pointer':''}" title="${stop.custom?'Tap to switch to Solo':''}">🚚 Towing${stop.custom?' ⇄':''}</span>`
-            :`<span onclick="${stop.custom?`toggleTowing('${stop.key}')`:''}" style="font-size:11px;background:var(--green-bg);color:var(--green);padding:2px 8px;border-radius:10px;${stop.custom?'cursor:pointer':''}" title="${stop.custom?'Tap to switch to Towing':''}">🚗 Solo${stop.custom?' ⇄':''}</span>`
-          }
-          ${locked
-            ?`<span style="font-size:11px;background:var(--green-bg);color:var(--green);padding:2px 8px;border-radius:10px">🔒 Locked</span>
-               <button onclick="toggleLock('${stop.key}',false)" style="font-size:11px;padding:2px 8px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);border-radius:10px;cursor:pointer">Unlock</button>`
-            :`<button onclick="toggleLock('${stop.key}',true)" style="font-size:11px;padding:2px 8px;border:1px solid var(--green);background:var(--green-bg);color:var(--green);border-radius:10px;cursor:pointer">🔒 Lock</button>
-               <button onclick="deleteFuelStop('${stop.key}',${stop.custom},${customIdx})" style="font-size:11px;padding:2px 8px;border:1px solid var(--border);background:var(--red-bg);color:var(--red);border-radius:10px;cursor:pointer">✕ Delete</button>`
-          }
-        </div>
-      </div>
-      <div class="fuel-note">${stop.note||''}</div>
-      ${d.lat?`<div style="font-size:11px;color:var(--text2);margin-bottom:8px">📍 ${parseFloat(d.lat).toFixed(4)}, ${parseFloat(d.lon).toFixed(4)} · ${d.loctime||''}</div>`:''}
-      ${locked?'':`<button onclick="captureLocation('${stop.key}')" style="font-size:12px;padding:6px 14px;border:1px solid var(--accent);background:var(--accent2);color:var(--accent);border-radius:20px;cursor:pointer;margin-bottom:10px;width:100%">📍 Capture my location now</button>`}
-      <div class="fuel-inputs">
-        <div class="fuel-field"><label>Gallons (or litres)</label><input type="number" step="0.01" placeholder="e.g. 18.4" value="${d.gal||''}" ${locked?'disabled':''} onchange="saveFuel('${stop.key}','gal',this.value)"></div>
-        <div class="fuel-field"><label>Price per unit</label><input type="number" step="0.001" placeholder="e.g. 4.25" value="${d.price||''}" ${locked?'disabled':''} onchange="saveFuel('${stop.key}','price',this.value)"></div>
-        <div class="fuel-field"><label>Odometer (miles)</label><input type="number" placeholder="e.g. 48220" value="${d.odo||''}" ${locked?'disabled':''} onchange="saveFuel('${stop.key}','odo',this.value)"></div>
-        <div class="fuel-field"><label>Currency</label><input type="text" placeholder="USD or CAD" value="${d.cur||'USD'}" ${locked?'disabled':''} onchange="saveFuel('${stop.key}','cur',this.value)"></div>
-      </div>
-      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-        ${stopTotal?`<div style="font-size:13px;color:var(--text2)">Stop cost: <strong style="color:var(--green)">$${stopTotal} ${d.cur||'USD'}</strong></div>`:''}
-        ${mpgEntry?`<div style="font-size:13px;color:var(--text2)">Leg MPG: <strong style="color:${parseFloat(mpgEntry.mpg)<10?'var(--amber)':'var(--green)'}">${mpgEntry.mpg} mpg</strong> (${mpgEntry.miles} mi)</div>`:''}
-      </div>
-    </div>`;
-  });
+    const galBtnStyle='flex:1;padding:8px;border:2px solid '+(!isLitres?'var(--accent)':'var(--border)')+';background:'+(!isLitres?'var(--accent2)':'var(--bg3)')+';color:'+(!isLitres?'var(--accent)':'var(--text2)')+';border-radius:8px;font-size:13px;font-weight:600;cursor:pointer';
+    const lBtnStyle='flex:1;padding:8px;border:2px solid '+(isLitres?'var(--accent)':'var(--border)')+';background:'+(isLitres?'var(--accent2)':'var(--bg3)')+';color:'+(isLitres?'var(--accent)':'var(--text2)')+';border-radius:8px;font-size:13px;font-weight:600;cursor:pointer';
+    const usdBtnStyle='flex:1;padding:8px;border:2px solid '+(!isCad?'var(--green)':'var(--border)')+';background:'+(!isCad?'var(--green-bg)':'var(--bg3)')+';color:'+(!isCad?'var(--green)':'var(--text2)')+';border-radius:8px;font-size:13px;font-weight:600;cursor:pointer';
+    const cadBtnStyle='flex:1;padding:8px;border:2px solid '+(isCad?'var(--amber)':'var(--border)')+';background:'+(isCad?'var(--amber-bg)':'var(--bg3)')+';color:'+(isCad?'var(--amber)':'var(--text2)')+';border-radius:8px;font-size:13px;font-weight:600;cursor:pointer';
+    const qtyLabel=isLitres?'Litres pumped':'Gallons pumped';
+    const qtyPlaceholder=isLitres?'e.g. 69.5':'e.g. 18.4';
+    const priceLabel='Price per '+(isLitres?'litre':'gallon')+' ('+cur+')';
+    const pricePlaceholder=isLitres?'e.g. 1.85':'e.g. 4.25';
+    const galEqLabel=isLitres?'Gal equivalent':'&nbsp;';
+    const galEqVal=isLitres&&qty?galsEq.toFixed(2)+' gal eq.':'';
+    const k=stop.key;
+    const buttonRow='<div style="display:flex;gap:8px;margin-bottom:8px">'
+      +'<button onclick="saveFuel(\''+k+'\',\'unit\',\'gal\')" style="'+galBtnStyle+'">Gallons</button>'
+      +'<button onclick="saveFuel(\''+k+'\',\'unit\',\'L\')" style="'+lBtnStyle+'">Litres</button>'
+      +'<button onclick="saveFuel(\''+k+'\',\'cur\',\'USD\')" style="'+usdBtnStyle+'">USD</button>'
+      +'<button onclick="saveFuel(\''+k+'\',\'cur\',\'CAD\')" style="'+cadBtnStyle+'">CAD</button>'
+      +'</div>';
+    const inputRow='<div class="fuel-inputs">'
+      +'<div class="fuel-field"><label>'+qtyLabel+'</label><input type="number" step="0.01" placeholder="'+qtyPlaceholder+'" value="'+(d.qty||'')+'" '+(locked?'disabled':'')+' onchange="saveFuel(\''+k+'\',\'qty\',this.value)"></div>'
+      +'<div class="fuel-field"><label>'+priceLabel+'</label><input type="number" step="0.001" placeholder="'+pricePlaceholder+'" value="'+(d.price||'')+'" '+(locked?'disabled':'')+' onchange="saveFuel(\''+k+'\',\'price\',this.value)"></div>'
+      +'<div class="fuel-field"><label>Odometer (miles)</label><input type="number" placeholder="e.g. 48220" value="'+(d.odo||'')+'" '+(locked?'disabled':'')+' onchange="saveFuel(\''+k+'\',\'odo\',this.value)"></div>'
+      +'<div class="fuel-field"><label>'+galEqLabel+'</label><input type="text" readonly value="'+galEqVal+'" style="background:var(--bg3);color:var(--text2)"></div>'
+      +'</div>';
+    html+='<div class="fuel-card" style="'+borderStyle+'">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">'
+      +'<div class="fuel-stop-name">'+stop.name+'</div>'
+      +'<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">'+towingBadge+lockBtns+'</div>'
+      +'</div>'
+      +'<div class="fuel-note">'+(stop.note||'')+'</div>'
+      +locHTML
+      +locCapBtn
+      +buttonRow
+      +inputRow
+      +'<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">'+costHTML+mpgHTML+'</div>'
+      +'</div>';
+  }); // end allStops.forEach
 
   html+=`<div style="margin-top:8px">
     <button onclick="addCustomStop()" style="width:100%;padding:14px;border:2px dashed var(--accent);background:var(--accent2);color:var(--accent);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:0.5px">
@@ -1120,12 +1146,14 @@ function exportFuelData(){
 
   allStops.forEach(stop=>{
     const d=saved[stop.key]||{};
-    if(!d.gal&&!d.odo&&!d.price) return; // skip empty stops
+    if(!d.qty&&!d.odo&&!d.price) return; // skip empty stops
     txt+=stop.name+(stop.custom?' (custom stop)':'')+'\n';
     txt+='  Type: '+(stop.towing?'Towing':'Solo')+'\n';
-    if(d.gal) txt+='  Gallons: '+d.gal+'\n';
-    if(d.price) txt+='  Price/unit: '+d.price+' '+(d.cur||'USD')+'\n';
-    if(d.gal&&d.price) txt+='  Stop cost: $'+(parseFloat(d.gal)*parseFloat(d.price)).toFixed(2)+' '+(d.cur||'USD')+'\n';
+    const isL=(d.unit||'gal')==='L';
+    const isCad=(d.cur||'USD')==='CAD';
+    if(d.qty) txt+='  '+(isL?'Litres':'Gallons')+': '+d.qty+(isL?' L ('+(parseFloat(d.qty)/3.78541).toFixed(2)+' gal eq.)':'')+'\n';
+    if(d.price) txt+='  Price/'+( isL?'litre':'gallon')+': '+d.price+' '+(d.cur||'USD')+'\n';
+    if(d.qty&&d.price) txt+='  Stop cost: $'+(parseFloat(d.qty)*parseFloat(d.price)).toFixed(2)+' '+(d.cur||'USD')+'\n';
     if(d.odo) txt+='  Odometer: '+d.odo+' mi\n';
     if(d.lat) txt+='  GPS: '+d.lat+', '+d.lon+' ('+(d.loctime||'')+')\n';
     if(d.locked) txt+='  [LOCKED]\n';

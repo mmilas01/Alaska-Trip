@@ -819,15 +819,29 @@ const FUEL_STOPS = [
 ];
 
 // ─── RENDER HOTELS ────────────────────────────────────────────────────────
+function toggleCollapse(type, key){
+  const saved=JSON.parse(localStorage.getItem('ak_collapse')||'{}');
+  if(!saved[type]) saved[type]={};
+  saved[type][key]=!saved[type][key];
+  localStorage.setItem('ak_collapse',JSON.stringify(saved));
+  if(type==='hotel') renderHotels();
+  else if(type==='itin') renderItinerary();
+  else if(type==='fuel') renderFuel();
+}
+
+function isCollapsed(type, key){
+  const saved=JSON.parse(localStorage.getItem('ak_collapse')||'{}');
+  return !!(saved[type]&&saved[type][key]);
+}
+
 function renderHotels(){
   const el = document.getElementById('hotels-container');
-  el.innerHTML = HOTELS.map(h=>`
-    <div class="hotel-card ${h.type}">
-      <div class="hotel-top">
-        <span class="hotel-name">${h.name}</span>
-        <span class="hotel-day-badge">${h.day}</span>
-      </div>
-      <div class="conf-row">
+  el.innerHTML = HOTELS.map((h,i)=>{
+    const collapsed=isCollapsed('hotel',i);
+    const arrow=collapsed?'▶':'▼';
+    const headerStyle='display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none';
+    const body=collapsed?'':`
+      <div class="conf-row" style="margin-top:10px">
         <span class="conf-label">Conf #</span>
         <span class="conf-num">${h.conf}</span>
       </div>
@@ -836,9 +850,18 @@ function renderHotels(){
       <div class="hotel-actions">
         <a class="h-btn" href="${h.maps}">📍 Directions</a>
         <a class="h-btn" href="tel:${h.phone}">📞 ${h.phone}</a>
+      </div>`;
+    return `<div class="hotel-card ${h.type}" style="${collapsed?'opacity:0.6':''}">
+      <div style="${headerStyle}" onclick="toggleCollapse('hotel',${i})">
+        <div>
+          <div class="hotel-name">${h.name}</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">${h.day}</div>
+        </div>
+        <span style="font-size:14px;color:var(--text2);padding-left:12px">${arrow}</span>
       </div>
-    </div>
-  `).join('');
+      ${body}
+    </div>`;
+  }).join('');
 }
 
 // ─── RENDER ITINERARY ─────────────────────────────────────────────────────
@@ -846,6 +869,8 @@ function renderItinerary(){
   const el = document.getElementById('itinerary-container');
   const saved = JSON.parse(localStorage.getItem('ak_depart')||'{}');
   el.innerHTML = ITINERARY.map((d,i)=>{
+    const collapsed=isCollapsed('itin',i);
+    const arrow=collapsed?'▶':'▼';
     const depTime = saved[i] || '';
     let eta = '';
     if(depTime && d.driveHours>0){
@@ -856,17 +881,12 @@ function renderItinerary(){
       const dayOver = Math.floor(totalMin/60/24);
       const ampm = etaH>=12?'PM':'AM';
       let etaH12 = etaH%12; if(etaH12===0) etaH12=12;
-      eta = `${etaH12}:${String(etaM).padStart(2,'0')} ${ampm}${dayOver>0?' (+'+dayOver+'d)':''}`;
+      eta = etaH12+':'+String(etaM).padStart(2,'0')+' '+ampm+(dayOver>0?' (+'+dayOver+'d)':'');
     }
-    return `
-    <div class="day-card">
-      <div class="day-header">
-        <span class="day-num">${d.day}</span>
-        <span class="day-date">${d.date}</span>
-      </div>
+    const body = collapsed ? '' : `
       <div class="day-route">${d.route}</div>
       <div class="day-stats">
-        ${d.miles?`<span>📍 ${d.miles} mi</span>`:''}
+        ${d.miles?'<span>📍 '+d.miles+' mi</span>':''}
         <span>⏱ ${d.drive}</span>
         ${d.solo?'<span>🚗 Solo (no trailer)</span>':''}
       </div>
@@ -876,7 +896,7 @@ function renderItinerary(){
           <label style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:4px">Departure time</label>
           <div style="display:flex;gap:6px;align-items:center">
             <input type="time" value="${depTime}" onchange="saveDepartTime(${i},this.value)" style="flex:1;min-width:0;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--text);font-size:14px">
-            ${depTime?`<button onclick="clearDepartTime(${i})" style="flex-shrink:0;font-size:13px;padding:7px 12px;border:1px solid var(--border);background:var(--red-bg);color:var(--red);border-radius:6px;cursor:pointer">✕</button>`:''}
+            ${depTime?'<button onclick="clearDepartTime('+i+')" style="flex-shrink:0;font-size:13px;padding:7px 12px;border:1px solid var(--border);background:var(--red-bg);color:var(--red);border-radius:6px;cursor:pointer">✕</button>':''}
           </div>
         </div>
         ${eta?`<div>
@@ -884,9 +904,18 @@ function renderItinerary(){
           <div style="font-size:16px;font-weight:600;color:var(--green)">${eta}</div>
         </div>`:''}
       </div>`:''}
-      <div class="day-notes">${d.notes}${d.alert?`<span class="alert">⚠️ ${d.alert}</span>`:''}</div>
-    </div>
-  `}).join('');
+      <div class="day-notes">${d.notes}${d.alert?'<span class="alert">⚠️ '+d.alert+'</span>':''}</div>`;
+    return `<div class="day-card" style="${collapsed?'opacity:0.6':''}">
+      <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none" onclick="toggleCollapse('itin',${i})">
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--gold)">${d.day} · ${d.date}</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-top:2px">${d.route}</div>
+        </div>
+        <span style="font-size:14px;color:var(--text2);padding-left:12px;flex-shrink:0">${arrow}</span>
+      </div>
+      ${body}
+    </div>`;
+  }).join('');
 }
 
 function saveDepartTime(idx,val){
@@ -1097,17 +1126,22 @@ function renderFuel(){
       +'<div class="fuel-field"><label>Odometer (miles)</label><input type="number" placeholder="e.g. 48220" value="'+(d.odo||'')+'" '+(locked?'disabled':'')+' onchange="saveFuel(\''+k+'\',\'odo\',this.value)"></div>'
       +'<div class="fuel-field"><label>'+galEqLabel+'</label><input type="text" readonly value="'+galEqVal+'" style="background:var(--bg3);color:var(--text2)"></div>'
       +'</div>';
-    html+='<div class="fuel-card" style="'+borderStyle+'">'
-      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">'
+    const fuelCollapsed=isCollapsed('fuel',stop.key);
+    const fuelArrow=fuelCollapsed?'▶':'▼';
+    const fuelBody=fuelCollapsed?'':buttonRow+inputRow+'<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">'+costHTML+mpgHTML+'</div>';
+    html+='<div class="fuel-card" style="'+borderStyle+(fuelCollapsed?';opacity:0.6':'')+'">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none" onclick="toggleCollapse(\'fuel\',\''+k+'\')">'
+      +'<div>'
       +'<div class="fuel-stop-name">'+stop.name+'</div>'
-      +'<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">'+towingBadge+lockBtns+'</div>'
+      +'<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px">'+towingBadge+(fuelCollapsed&&(stopCost)?'<span style="font-size:12px;color:var(--green);font-weight:600">$'+stopCost+' '+cur+'</span>':'')+(fuelCollapsed&&mpgEntry?'<span style="font-size:12px;color:var(--green);font-weight:600">'+mpgEntry.mpg+' mpg</span>':'')+'</div>'
       +'</div>'
-      +'<div class="fuel-note">'+(stop.note||'')+'</div>'
-      +locHTML
-      +locCapBtn
-      +buttonRow
-      +inputRow
-      +'<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">'+costHTML+mpgHTML+'</div>'
+      +'<div style="display:flex;gap:6px;align-items:center;flex-shrink:0">'
+      +lockBtns
+      +'<span style="font-size:14px;color:var(--text2);padding-left:8px">'+fuelArrow+'</span>'
+      +'</div>'
+      +'</div>'
+      +(fuelCollapsed?'':'<div class="fuel-note">'+(stop.note||'')+'</div>'+locHTML+locCapBtn)
+      +fuelBody
       +'</div>';
   }); // end allStops.forEach
 
